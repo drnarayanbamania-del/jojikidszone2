@@ -31,6 +31,8 @@ import { AdminLoginModal } from './components/AdminLoginModal';
 import { AdminManagementModal } from './components/AdminManagementModal';
 import { OrderHistoryModal } from './components/OrderHistoryModal';
 import { ContactUsView } from './components/ContactUsView';
+import { CustomerChatBot } from './components/CustomerChatBot';
+import { SizeGuideModal } from './components/SizeGuideModal';
 import {
   Filter,
   ArrowUpDown,
@@ -71,6 +73,7 @@ export default function App() {
   const [isTrackModalOpen, setIsTrackModalOpen] = useState(false);
   const [isOrderHistoryOpen, setIsOrderHistoryOpen] = useState(false);
   const [isContactUsOpen, setIsContactUsOpen] = useState(false);
+  const [isGlobalSizeGuideOpen, setIsGlobalSizeGuideOpen] = useState(false);
   const [pastOrders, setPastOrders] = useState<PastOrder[]>(() => getPastOrders());
   const [cartBumpTrigger, setCartBumpTrigger] = useState(0);
 
@@ -542,7 +545,7 @@ export default function App() {
         />
 
         {/* Filter Controls & Products Header */}
-        <div className="space-y-4">
+        <div id="products-section" className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-slate-800">
             <div>
               <div className="flex items-center gap-2">
@@ -1013,6 +1016,35 @@ export default function App() {
         adminSession={adminSession}
         onLogout={handleAdminLogout}
         onRefreshData={loadData}
+      />
+
+      {/* Floating Customer Care Assistant ChatBot */}
+      <CustomerChatBot
+        onOpenTrackOrder={(orderId) => {
+          if (orderId) setTrackedOrderId(orderId);
+          setIsTrackModalOpen(true);
+        }}
+        onOpenCart={() => setIsCartOpen(true)}
+        onOpenWishlist={() => setIsWishlistOpen(true)}
+        onOpenContactUs={() => setIsContactUsOpen(true)}
+        onSelectCategory={(categorySlug) => {
+          handleFilterChange({ selectedCategorySlug: categorySlug });
+          setTimeout(() => {
+            document.getElementById('products-section')?.scrollIntoView({ behavior: 'smooth' });
+          }, 100);
+        }}
+        onOpenSizeGuide={() => setIsGlobalSizeGuideOpen(true)}
+        categories={categories}
+        pastOrders={pastOrders}
+        isDarkMode={isDarkMode}
+      />
+
+      {/* Global Size Guide Modal */}
+      <SizeGuideModal
+        isOpen={isGlobalSizeGuideOpen}
+        onClose={() => setIsGlobalSizeGuideOpen(false)}
+        productName="Kids Outfits & Shoes"
+        onSelectSize={() => {}}
       />
     </div>
   );
