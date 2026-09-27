@@ -14,7 +14,9 @@ import {
   RotateCcw,
   Truck,
   ShieldCheck,
-  Award
+  Award,
+  Upload,
+  Camera,
 } from 'lucide-react';
 
 export interface HeroBannerProps {
@@ -44,9 +46,34 @@ interface SlideData {
   accentGlow: string;
   imageUrl: string;
   imageAlt: string;
+  isFullBanner?: boolean;
+  storeLocation?: string;
+  whatsAppNumber?: string;
 }
 
 const SLIDES: SlideData[] = [
+  {
+    id: 'dewas-festive-ethnic',
+    isFullBanner: true,
+    badge: '👑 DEWAS SPECIAL • WEAR • PLAY • SMILE',
+    badgeIcon: 'Sparkles',
+    timerBadge: 'FESTIVE SEASON',
+    title: 'FESTIVE SEASON',
+    highlightText: 'ETHNIC WEAR',
+    subtitle: 'Dress Up Little Moments, Create Big Memories • Joji Kids Zone Dewas',
+    discounts: ['Girls Wear', 'Boys Wear', 'Toys & Gifts', 'Kids Accessories'],
+    couponCode: 'DEWAS15',
+    couponLabel: 'Coupon: DEWAS15',
+    ctaText: 'Shop Festive Ethnic Wear',
+    categorySlug: 'clothing',
+    quickFilterTag: 'FESTIVE',
+    storeLocation: '120 A.B. Road, Dewas',
+    whatsAppNumber: '9893380637',
+    bgGradient: 'from-[#500724] via-[#831843] to-[#be185d]',
+    accentGlow: 'from-pink-500/30 via-rose-500/20 to-amber-400/20',
+    imageUrl: '/festive-banner.svg',
+    imageAlt: 'Joji Kids Zone Festive Season Ethnic Wear - Dewas Store Banner',
+  },
   {
     id: 'rush-hour',
     badge: '⚡ FASTEST DELIVERY',
@@ -160,6 +187,33 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
   const [isPaused, setIsPaused] = useState(false);
   const [copiedCoupon, setCopiedCoupon] = useState<string | null>(null);
   const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [customUploadedBanner, setCustomUploadedBanner] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem('joji_custom_festive_banner');
+    } catch {
+      return null;
+    }
+  });
+
+  const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      if (dataUrl) {
+        setCustomUploadedBanner(dataUrl);
+        try {
+          localStorage.setItem('joji_custom_festive_banner', dataUrl);
+        } catch (err) {
+          console.warn('Failed saving to localStorage:', err);
+        }
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   const slide = SLIDES[currentIdx];
 
@@ -280,6 +334,21 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
         </div>
 
         <div className="flex items-center gap-3 shrink-0 pl-4">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleBannerUpload}
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            title="Upload your custom banner image (e.g. PPP.png)"
+            className="flex items-center gap-1.5 px-2.5 py-1 bg-white/90 hover:bg-white text-slate-900 rounded-lg text-[11px] font-bold shadow-xs transition active:scale-95 cursor-pointer"
+          >
+            <Camera className="w-3.5 h-3.5 text-pink-600" />
+            <span>Upload Banner</span>
+          </button>
           <span className="px-2 py-0.5 bg-slate-900 text-white rounded-md text-[10px] font-black tracking-widest">
             JOJI CLUB
           </span>
@@ -305,7 +374,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
             initial="enter"
             animate="center"
             exit="exit"
-            className={`w-full bg-gradient-to-r ${slide.bgGradient} p-6 sm:p-10 text-white flex flex-col justify-center relative overflow-hidden`}
+            className={`w-full bg-gradient-to-r ${slide.bgGradient} p-4 sm:p-8 text-white flex flex-col justify-center relative overflow-hidden`}
             style={{ minHeight: '380px' }}
           >
             {/* Dynamic Background Glow Layer */}
@@ -315,105 +384,158 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
             {/* Subtle grid pattern overlay */}
             <div className="absolute inset-0 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:20px_20px] opacity-10 pointer-events-none" />
 
-            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-              {/* Left Promotional Content */}
-              <div className="lg:col-span-7 space-y-4">
-                {/* Header Tag Badges */}
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-amber-200 text-xs font-black uppercase tracking-wider border border-white/20">
-                    <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300 animate-pulse" />
-                    {slide.badge}
-                  </span>
-                  {slide.timerBadge && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 text-xs font-extrabold shadow-sm">
-                      <Clock className="w-3 h-3 text-slate-950" />
-                      {slide.timerBadge}
-                    </span>
-                  )}
-                </div>
+            {slide.isFullBanner ? (
+              <div
+                className="relative w-full h-full min-h-[380px] sm:min-h-[440px] flex flex-col items-center justify-center cursor-pointer group/fullbanner"
+                onClick={() => handleSlideCta(slide)}
+              >
+                <img
+                  src={customUploadedBanner || slide.imageUrl}
+                  alt={slide.imageAlt}
+                  className="w-full h-full max-h-[460px] object-cover sm:object-contain rounded-2xl shadow-2xl transition-transform duration-500 group-hover/fullbanner:scale-[1.01]"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/festive-banner.svg';
+                  }}
+                />
 
-                {/* Big Display Typography */}
-                <div className="space-y-1">
-                  <h1 className="font-display font-black text-3xl sm:text-5xl lg:text-6xl tracking-tight leading-none text-white drop-shadow-md">
-                    {slide.title}{' '}
-                    <span className="text-amber-300 underline decoration-amber-400 decoration-wavy decoration-2">
-                      {slide.highlightText}
-                    </span>
-                  </h1>
-                  <p className="text-white/90 text-sm sm:text-base font-medium max-w-lg leading-snug pt-1">
-                    {slide.subtitle}
-                  </p>
-                </div>
-
-                {/* Discounts Badges Strip (FirstCry style) */}
-                <div className="flex flex-wrap items-center gap-2 pt-1">
-                  {slide.discounts.map((disc, dIdx) => (
-                    <span
-                      key={dIdx}
-                      className="px-2.5 py-1 bg-white/15 backdrop-blur-md border border-white/25 rounded-lg text-xs font-black text-white shadow-xs tracking-wide"
+                {/* Interactive Floating Footer Bar on Full Banner */}
+                <div
+                  className="absolute bottom-2 left-2 right-2 sm:bottom-4 sm:left-6 sm:right-6 bg-slate-950/85 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border border-white/20 flex flex-wrap items-center justify-between gap-2 shadow-2xl z-10"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-center gap-2 sm:gap-4">
+                    <a
+                      href={`https://wa.me/91${slide.whatsAppNumber || '9893380637'}?text=Hi%20Joji%20Kids%20Zone%20Dewas!%20I%20am%20interested%20in%20Festive%20Season%20Ethnic%20Wear`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs shadow-md transition active:scale-95 cursor-pointer"
                     >
-                      {disc}
+                      <span>💬 WhatsApp: {slide.whatsAppNumber || '9893380637'}</span>
+                    </a>
+                    <span className="hidden sm:inline-flex items-center gap-1 text-xs font-bold text-pink-200">
+                      📍 {slide.storeLocation || '120 A.B. Road, Dewas'}
                     </span>
-                  ))}
-                </div>
+                  </div>
 
-                {/* Interactive Coupon Box & CTA Button */}
-                <div className="flex flex-wrap items-center gap-3 pt-2">
-                  {/* FirstCry style Coupon Capsule Button */}
-                  <button
-                    id={`coupon-btn-${slide.couponCode}`}
-                    onClick={(e) => handleCopyCoupon(slide.couponCode, e)}
-                    className="relative group/btn flex items-center gap-2 px-4 py-2.5 bg-white text-slate-900 hover:bg-amber-100 font-extrabold text-xs sm:text-sm rounded-xl shadow-lg shadow-black/20 border-2 border-dashed border-amber-500 transition-all cursor-pointer active:scale-95"
-                    title="Click to copy coupon code"
-                  >
-                    <Tag className="w-4 h-4 text-amber-600" />
-                    <span>{slide.couponLabel}</span>
-                    {copiedCoupon === slide.couponCode ? (
-                      <span className="flex items-center gap-1 text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded text-[11px] font-bold">
-                        <Check className="w-3 h-3" />
-                        Copied!
-                      </span>
-                    ) : (
-                      <Copy className="w-3.5 h-3.5 text-slate-400 group-hover/btn:text-slate-700" />
-                    )}
-                  </button>
-
-                  {/* Primary CTA Shop Action */}
-                  <button
-                    onClick={() => handleSlideCta(slide)}
-                    className="px-5 py-2.5 bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-amber-400/20 flex items-center gap-2 transition-all cursor-pointer"
-                  >
-                    <span>{slide.ctaText}</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Right Hero Image Card (FirstCry Model style) */}
-              <div className="lg:col-span-5 relative flex justify-center items-center">
-                <div className="relative w-full max-w-sm sm:max-w-md aspect-4/3 rounded-3xl overflow-hidden shadow-2xl border-4 border-white/20 bg-slate-800/40">
-                  <img
-                    src={slide.imageUrl}
-                    alt={slide.imageAlt}
-                    className="w-full h-full object-cover object-center transform group-hover:scale-105 transition-transform duration-700"
-                    referrerPolicy="no-referrer"
-                  />
-                  {/* Vignette & Soft Gradient on bottom of image */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
-
-                  {/* Floating Guarantee Stamp */}
-                  <div className="absolute bottom-3 left-3 right-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-3.5 py-2 rounded-xl text-slate-900 dark:text-white flex items-center justify-between shadow-lg border border-transparent dark:border-slate-700/60">
-                    <div className="flex items-center gap-2">
-                      <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                      <span className="text-[11px] font-extrabold">100% Cotton & Lab Tested</span>
-                    </div>
-                    <span className="text-[10px] font-black uppercase text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded">
-                      JOJI ASSURED
-                    </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={(e) => handleCopyCoupon(slide.couponCode, e)}
+                      className="px-2.5 sm:px-3 py-1.5 bg-white/15 hover:bg-white/25 text-white text-xs font-bold rounded-xl border border-white/25 cursor-pointer transition active:scale-95"
+                    >
+                      {copiedCoupon === slide.couponCode ? '✓ Copied' : `Code: ${slide.couponCode}`}
+                    </button>
+                    <button
+                      onClick={() => handleSlideCta(slide)}
+                      className="px-3.5 sm:px-4 py-1.5 bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black text-xs rounded-xl shadow transition cursor-pointer flex items-center gap-1"
+                    >
+                      <span>{slide.ctaText}</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                {/* Left Promotional Content */}
+                <div className="lg:col-span-7 space-y-4">
+                  {/* Header Tag Badges */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-amber-200 text-xs font-black uppercase tracking-wider border border-white/20">
+                      <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300 animate-pulse" />
+                      {slide.badge}
+                    </span>
+                    {slide.timerBadge && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 text-xs font-extrabold shadow-sm">
+                        <Clock className="w-3 h-3 text-slate-950" />
+                        {slide.timerBadge}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Big Display Typography */}
+                  <div className="space-y-1">
+                    <h1 className="font-display font-black text-3xl sm:text-5xl lg:text-6xl tracking-tight leading-none text-white drop-shadow-md">
+                      {slide.title}{' '}
+                      <span className="text-amber-300 underline decoration-amber-400 decoration-wavy decoration-2">
+                        {slide.highlightText}
+                      </span>
+                    </h1>
+                    <p className="text-white/90 text-sm sm:text-base font-medium max-w-lg leading-snug pt-1">
+                      {slide.subtitle}
+                    </p>
+                  </div>
+
+                  {/* Discounts Badges Strip (FirstCry style) */}
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    {slide.discounts.map((disc, dIdx) => (
+                      <span
+                        key={dIdx}
+                        className="px-2.5 py-1 bg-white/15 backdrop-blur-md border border-white/25 rounded-lg text-xs font-black text-white shadow-xs tracking-wide"
+                      >
+                        {disc}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Interactive Coupon Box & CTA Button */}
+                  <div className="flex flex-wrap items-center gap-3 pt-2">
+                    {/* FirstCry style Coupon Capsule Button */}
+                    <button
+                      id={`coupon-btn-${slide.couponCode}`}
+                      onClick={(e) => handleCopyCoupon(slide.couponCode, e)}
+                      className="relative group/btn flex items-center gap-2 px-4 py-2.5 bg-white text-slate-900 hover:bg-amber-100 font-extrabold text-xs sm:text-sm rounded-xl shadow-lg shadow-black/20 border-2 border-dashed border-amber-500 transition-all cursor-pointer active:scale-95"
+                      title="Click to copy coupon code"
+                    >
+                      <Tag className="w-4 h-4 text-amber-600" />
+                      <span>{slide.couponLabel}</span>
+                      {copiedCoupon === slide.couponCode ? (
+                        <span className="flex items-center gap-1 text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded text-[11px] font-bold">
+                          <Check className="w-3 h-3" />
+                          Copied!
+                        </span>
+                      ) : (
+                        <Copy className="w-3.5 h-3.5 text-slate-400 group-hover/btn:text-slate-700" />
+                      )}
+                    </button>
+
+                    {/* Primary CTA Shop Action */}
+                    <button
+                      onClick={() => handleSlideCta(slide)}
+                      className="px-5 py-2.5 bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-amber-400/20 flex items-center gap-2 transition-all cursor-pointer"
+                    >
+                      <span>{slide.ctaText}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Right Hero Image Card (FirstCry Model style) */}
+                <div className="lg:col-span-5 relative flex justify-center items-center">
+                  <div className="relative w-full max-w-sm sm:max-w-md aspect-4/3 rounded-3xl overflow-hidden shadow-2xl border-4 border-white/20 bg-slate-800/40">
+                    <img
+                      src={slide.imageUrl}
+                      alt={slide.imageAlt}
+                      className="w-full h-full object-cover object-center transform group-hover:scale-105 transition-transform duration-700"
+                      referrerPolicy="no-referrer"
+                    />
+                    {/* Vignette & Soft Gradient on bottom of image */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+
+                    {/* Floating Guarantee Stamp */}
+                    <div className="absolute bottom-3 left-3 right-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-3.5 py-2 rounded-xl text-slate-900 dark:text-white flex items-center justify-between shadow-lg border border-transparent dark:border-slate-700/60">
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        <span className="text-[11px] font-extrabold">100% Cotton & Lab Tested</span>
+                      </div>
+                      <span className="text-[10px] font-black uppercase text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded">
+                        JOJI ASSURED
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </motion.div>
         </AnimatePresence>
 
