@@ -1,0 +1,487 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 440" width="100%" height="100%">
+  <defs>
+    <!-- Palace Courtyard Background Gradient -->
+    <linearGradient id="palaceBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fffbeb" />
+      <stop offset="25%" stop-color="#fef3c7" />
+      <stop offset="60%" stop-color="#fed7aa" />
+      <stop offset="100%" stop-color="#fdba74" />
+    </linearGradient>
+
+    <!-- Warm Golden Ambient Radial -->
+    <radialGradient id="sunlitGlow" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#fef08a" stop-opacity="0.8" />
+      <stop offset="40%" stop-color="#fed7aa" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#fdba74" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Royal Blue Cartouche Gradient for DIWALI CARNIVAL -->
+    <linearGradient id="royalBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a8a" />
+      <stop offset="45%" stop-color="#1d4ed8" />
+      <stop offset="100%" stop-color="#172554" />
+    </linearGradient>
+
+    <!-- Gold Gradients for borders and typography -->
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#d97706" />
+      <stop offset="30%" stop-color="#fde047" />
+      <stop offset="60%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#b45309" />
+    </linearGradient>
+
+    <linearGradient id="goldText" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fffbeb" />
+      <stop offset="35%" stop-color="#fef08a" />
+      <stop offset="70%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#b45309" />
+    </linearGradient>
+
+    <!-- Ruby Maroon Plaque Gradient for FLAT 40% -->
+    <linearGradient id="rubyMaroon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#881337" />
+      <stop offset="50%" stop-color="#9f1239" />
+      <stop offset="100%" stop-color="#4c0519" />
+    </linearGradient>
+
+    <!-- Drop Shadows -->
+    <filter id="shadowLg" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000000" flood-opacity="0.28" />
+    </filter>
+    <filter id="glowGold" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+
+    <!-- Sandstone Arch Pattern -->
+    <linearGradient id="sandstonePillar" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#d97706" stop-opacity="0.3" />
+      <stop offset="30%" stop-color="#fef3c7" stop-opacity="0.6" />
+      <stop offset="70%" stop-color="#fed7aa" stop-opacity="0.5" />
+      <stop offset="100%" stop-color="#b45309" stop-opacity="0.4" />
+    </linearGradient>
+  </defs>
+
+  <!-- BASE PALACE COURTYARD ARCHITECTURE -->
+  <rect width="1600" height="440" fill="url(#palaceBg)" />
+  <rect width="1600" height="440" fill="url(#sunlitGlow)" />
+
+  <!-- Background Sandstone Palace Arches -->
+  <g opacity="0.65">
+    <!-- Center Left Arch -->
+    <path d="M 450,440 L 450,220 C 450,130 520,70 600,70 C 680,70 750,130 750,220 L 750,440 Z" fill="none" stroke="#d97706" stroke-width="8" opacity="0.4" />
+    <path d="M 460,440 L 460,220 C 460,140 525,85 600,85 C 675,85 740,140 740,220 L 740,440 Z" fill="#fef3c7" opacity="0.3" />
+
+    <!-- Center Right Arch -->
+    <path d="M 760,440 L 760,220 C 760,130 830,70 910,70 C 990,70 1060,130 1060,220 L 1060,440 Z" fill="none" stroke="#d97706" stroke-width="8" opacity="0.4" />
+    <path d="M 770,440 L 770,220 C 770,140 835,85 910,85 C 985,85 1050,140 1050,220 L 1050,440 Z" fill="#fef3c7" opacity="0.3" />
+
+    <!-- Left Outer Arch -->
+    <path d="M 140,440 L 140,220 C 140,120 210,60 300,60 C 390,60 440,120 440,220 L 440,440 Z" fill="none" stroke="#d97706" stroke-width="8" opacity="0.4" />
+    <!-- Right Outer Arch -->
+    <path d="M 1070,440 L 1070,220 C 1070,120 1140,60 1230,60 C 1320,60 1370,120 1370,220 L 1370,440 Z" fill="none" stroke="#d97706" stroke-width="8" opacity="0.4" />
+
+    <!-- Pillars / Column Shafts -->
+    <rect x="430" y="80" width="30" height="360" fill="url(#sandstonePillar)" />
+    <rect x="740" y="80" width="30" height="360" fill="url(#sandstonePillar)" />
+    <rect x="1050" y="80" width="30" height="360" fill="url(#sandstonePillar)" />
+    <rect x="1360" y="80" width="30" height="360" fill="url(#sandstonePillar)" />
+    <rect x="120" y="80" width="30" height="360" fill="url(#sandstonePillar)" />
+  </g>
+
+  <!-- Warm Festive Bokeh Circles & Fairy Light Sparkles -->
+  <g opacity="0.6">
+    <circle cx="280" cy="120" r="18" fill="#fef08a" opacity="0.5" />
+    <circle cx="560" cy="80" r="24" fill="#fed7aa" opacity="0.6" />
+    <circle cx="680" cy="110" r="14" fill="#fef08a" opacity="0.4" />
+    <circle cx="890" cy="90" r="22" fill="#fef08a" opacity="0.5" />
+    <circle cx="1020" cy="130" r="16" fill="#fed7aa" opacity="0.4" />
+    <circle cx="1200" cy="100" r="20" fill="#fef08a" opacity="0.5" />
+    <circle cx="1400" cy="140" r="26" fill="#fed7aa" opacity="0.6" />
+  </g>
+
+  <!-- Hanging Royal Brass Lanterns -->
+  <g opacity="0.85">
+    <line x1="360" y1="0" x2="360" y2="110" stroke="#b45309" stroke-width="2" />
+    <polygon points="360,110 372,125 368,148 352,148 348,125" fill="#d97706" stroke="#f59e0b" stroke-width="2" />
+    <circle cx="360" cy="133" r="5" fill="#fef08a" />
+
+    <line x1="1160" y1="0" x2="1160" y2="100" stroke="#b45309" stroke-width="2" />
+    <polygon points="1160,100 1172,115 1168,138 1152,138 1148,115" fill="#d97706" stroke="#f59e0b" stroke-width="2" />
+    <circle cx="1160" cy="123" r="5" fill="#fef08a" />
+  </g>
+
+  <!-- ======================================================== -->
+  <!-- CENTER SCENE: 4 INDIAN CHILDREN CELEBRATING DIWALI -->
+  <!-- ======================================================== -->
+
+  <!-- CHILD 1 (LEFT): BOY IN NAVY KURTA & PATCHWORK BROCADE JACKET WITH KANDIL -->
+  <g id="child-boy-lantern" transform="translate(480, 75)">
+    <!-- Shadow under feet -->
+    <ellipse cx="65" cy="355" rx="55" ry="12" fill="#78350f" opacity="0.22" />
+
+    <!-- Pants (White Silk Churidar) -->
+    <path d="M 45,260 L 38,345 L 56,345 L 62,275 L 70,275 L 76,345 L 94,345 L 86,260 Z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" />
+    <!-- Traditional Jutti Shoes (Brown & Gold) -->
+    <path d="M 32,342 Q 40,340 56,344 Q 60,352 35,353 Z" fill="#78350f" stroke="#d97706" stroke-width="1.5" />
+    <path d="M 72,342 Q 80,340 96,344 Q 100,352 75,353 Z" fill="#78350f" stroke="#d97706" stroke-width="1.5" />
+
+    <!-- Navy Blue Silk Kurta Base -->
+    <path d="M 32,150 L 28,265 L 102,265 L 98,150 Z" fill="#1e3a8a" />
+
+    <!-- Ornate Patchwork Brocade Nehru Jacket (Navy, Maroon, Emerald, Gold geometric motifs) -->
+    <path d="M 32,145 L 30,240 L 65,245 L 100,240 L 98,145 Z" fill="#1e293b" stroke="#f59e0b" stroke-width="2" />
+    <!-- Jacket Lapel & Golden Borders -->
+    <path d="M 45,145 L 55,242 M 85,145 L 75,242" stroke="#fbbf24" stroke-width="2.5" />
+    <!-- Patchwork Brocade Patterns -->
+    <rect x="36" y="165" width="22" height="20" fill="#991b1b" opacity="0.85" rx="2" />
+    <rect x="72" y="165" width="22" height="20" fill="#047857" opacity="0.85" rx="2" />
+    <rect x="36" y="195" width="22" height="20" fill="#b45309" opacity="0.85" rx="2" />
+    <rect x="72" y="195" width="22" height="20" fill="#1e40af" opacity="0.85" rx="2" />
+    <!-- Nehru Collar & Gold Buttons -->
+    <rect x="52" y="138" width="26" height="12" rx="3" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5" />
+    <circle cx="65" cy="165" r="2.5" fill="#fde047" />
+    <circle cx="65" cy="185" r="2.5" fill="#fde047" />
+    <circle cx="65" cy="205" r="2.5" fill="#fde047" />
+    <circle cx="65" cy="225" r="2.5" fill="#fde047" />
+
+    <!-- Left Arm Holding Lantern Kandil -->
+    <path d="M 32,155 Q 0,175 5,230 Q 15,235 22,220 Q 18,180 40,165 Z" fill="#1e3a8a" />
+    <!-- Right Arm -->
+    <path d="M 98,155 Q 115,185 105,215 Q 95,215 92,185 Z" fill="#1e3a8a" />
+
+    <!-- Traditional Hanging Kandil Lantern in hand -->
+    <g transform="translate(-10, 215)">
+      <line x1="15" y1="0" x2="15" y2="25" stroke="#f59e0b" stroke-width="2" />
+      <polygon points="15,25 35,45 15,65 -5,45" fill="#f97316" stroke="#fde047" stroke-width="2" filter="url(#glowGold)" />
+      <polygon points="15,32 27,45 15,58 3,45" fill="#fef08a" />
+      <!-- Lantern Tassels -->
+      <line x1="5" y1="65" x2="2" y2="85" stroke="#e11d48" stroke-width="1.5" />
+      <line x1="15" y1="65" x2="15" y2="90" stroke="#f59e0b" stroke-width="2" />
+      <line x1="25" y1="65" x2="28" y2="85" stroke="#e11d48" stroke-width="1.5" />
+    </g>
+
+    <!-- Boy's Head & Face -->
+    <ellipse cx="65" cy="98" rx="28" ry="32" fill="#fed7aa" />
+    <!-- Boy Hair (Styled Indian boy haircut) -->
+    <path d="M 38,95 C 36,65 50,55 65,55 C 80,55 94,65 92,95 C 88,72 75,70 65,70 C 52,70 42,75 38,95 Z" fill="#1e293b" />
+    <!-- Facial Features: Joyful Smile -->
+    <ellipse cx="56" cy="95" rx="3.5" ry="4" fill="#0f172a" />
+    <ellipse cx="74" cy="95" rx="3.5" ry="4" fill="#0f172a" />
+    <path d="M 58,112 Q 65,122 72,112" fill="none" stroke="#b91c1c" stroke-width="2.5" stroke-linecap="round" />
+    <!-- Red Tikka / Bindi on forehead -->
+    <circle cx="65" cy="85" r="2" fill="#dc2626" />
+  </g>
+
+  <!-- CHILD 2 (CENTER-LEFT): GIRL IN LIME YELLOW LEHENGA WITH POOJA THALI -->
+  <g id="child-girl-thali" transform="translate(630, 95)">
+    <!-- Shadow under lehenga -->
+    <ellipse cx="65" cy="335" rx="65" ry="14" fill="#78350f" opacity="0.25" />
+
+    <!-- Lime-Yellow Flared Festive Lehenga Skirt -->
+    <path d="M 45,185 Q 15,260 0,330 Q 65,345 130,330 Q 115,260 85,185 Z" fill="#eab308" stroke="#fde047" stroke-width="2" />
+    <!-- Intricate Floral Zari Work on Skirt -->
+    <path d="M 5,310 Q 65,325 125,310" stroke="#f59e0b" stroke-width="3" fill="none" />
+    <path d="M 10,290 Q 65,305 120,290" stroke="#ffffff" stroke-width="1.5" stroke-dasharray="4,4" fill="none" />
+    <circle cx="35" cy="270" r="4" fill="#ec4899" />
+    <circle cx="65" cy="275" r="4.5" fill="#f43f5e" />
+    <circle cx="95" cy="270" r="4" fill="#ec4899" />
+
+    <!-- Choli Blouse (Lime Yellow & Gold) -->
+    <path d="M 42,130 L 38,185 L 92,185 L 88,130 Z" fill="#facc15" stroke="#d97706" stroke-width="1.5" />
+    <path d="M 42,130 Q 65,145 88,130" stroke="#d97706" stroke-width="2" fill="none" />
+
+    <!-- Dupatta draped across shoulder -->
+    <path d="M 38,135 Q 25,200 45,270 Q 55,270 48,200 Q 45,150 48,135 Z" fill="#fef08a" opacity="0.8" />
+
+    <!-- Arms Holding Brass Pooja Thali -->
+    <path d="M 40,140 Q 25,180 50,195" stroke="#fcd34d" stroke-width="12" stroke-linecap="round" fill="none" />
+    <path d="M 90,140 Q 105,180 80,195" stroke="#fcd34d" stroke-width="12" stroke-linecap="round" fill="none" />
+
+    <!-- Brass Pooja Thali with Marigolds & Lit Diyas -->
+    <g transform="translate(65, 190)">
+      <!-- Brass Platter Plate -->
+      <ellipse cx="0" cy="5" rx="38" ry="12" fill="#d97706" stroke="#fde047" stroke-width="2.5" />
+      <ellipse cx="0" cy="4" rx="34" ry="9" fill="#f59e0b" />
+      <!-- Marigold Flowers on Thali -->
+      <circle cx="-16" cy="3" r="6" fill="#f97316" />
+      <circle cx="-5" cy="5" r="5" fill="#eab308" />
+      <circle cx="8" cy="4" r="6" fill="#ea580c" />
+      <circle cx="18" cy="3" r="5" fill="#facc15" />
+      <!-- Lit Diya in Center -->
+      <path d="M -6,0 Q 0,4 6,0 Q 4,-4 -6,0 Z" fill="#991b1b" stroke="#f59e0b" stroke-width="1" />
+      <!-- Glowing Flame -->
+      <path d="M 0,-2 Q -2,-10 0,-14 Q 2,-10 0,-2 Z" fill="#fde047" filter="url(#glowGold)" />
+      <circle cx="0" cy="-6" r="3" fill="#ea580c" />
+    </g>
+
+    <!-- Girl's Head & Face -->
+    <ellipse cx="65" cy="85" rx="26" ry="28" fill="#fed7aa" />
+    <!-- Hairstyle: Long Indian Girl hair with jasmine flower gajra -->
+    <path d="M 38,85 C 36,55 50,45 65,45 C 80,45 94,55 92,85 C 96,115 90,140 85,155 C 82,140 85,110 85,85 C 80,60 50,60 45,85 Z" fill="#1e293b" />
+    <!-- White Jasmine Gajra flowers in hair -->
+    <circle cx="48" cy="54" r="3" fill="#ffffff" />
+    <circle cx="56" cy="50" r="3.5" fill="#ffffff" />
+    <circle cx="65" cy="48" r="3.5" fill="#ffffff" />
+    <circle cx="74" cy="50" r="3.5" fill="#ffffff" />
+    <circle cx="82" cy="54" r="3.5" fill="#ffffff" />
+    <!-- Eyes, Bindi, Smile -->
+    <ellipse cx="57" cy="82" rx="3.5" ry="4" fill="#0f172a" />
+    <ellipse cx="73" cy="82" rx="3.5" ry="4" fill="#0f172a" />
+    <circle cx="65" cy="74" r="2.5" fill="#dc2626" />
+    <path d="M 58,98 Q 65,108 72,98" fill="none" stroke="#be123c" stroke-width="2.5" stroke-linecap="round" />
+  </g>
+
+  <!-- CHILD 3 (CENTER-RIGHT): BOY IN ROYAL PURPLE KURTA TOSSING FLOWER PETALS -->
+  <g id="child-boy-purple" transform="translate(800, 60)">
+    <!-- Shadow under feet -->
+    <ellipse cx="65" cy="370" rx="50" ry="12" fill="#78350f" opacity="0.22" />
+
+    <!-- Pants (White Silk Pyjama) -->
+    <path d="M 45,265 L 36,360 L 54,360 L 62,280 L 68,280 L 76,360 L 94,360 L 85,265 Z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" />
+    <!-- Jutti Shoes -->
+    <path d="M 30,358 Q 38,355 54,360 Q 58,368 33,369 Z" fill="#581c87" stroke="#d97706" stroke-width="1.5" />
+    <path d="M 74,358 Q 82,355 98,360 Q 102,368 77,369 Z" fill="#581c87" stroke="#d97706" stroke-width="1.5" />
+
+    <!-- Royal Purple/Violet Silk Kurta with Gold Thread Motifs -->
+    <path d="M 32,155 L 25,270 L 105,270 L 98,155 Z" fill="#581c87" stroke="#9333ea" stroke-width="1.5" />
+    <!-- Gold Embroidered Placket & Collar -->
+    <path d="M 65,145 L 65,225" stroke="#fbbf24" stroke-width="4" />
+    <rect x="52" y="142" width="26" height="12" rx="3" fill="#6b21a8" stroke="#fbbf24" stroke-width="1.5" />
+    <!-- Silver/Gold thread booti motifs scattered on Kurta -->
+    <circle cx="45" cy="180" r="2" fill="#fde047" />
+    <circle cx="85" cy="180" r="2" fill="#fde047" />
+    <circle cx="42" cy="220" r="2" fill="#fde047" />
+    <circle cx="88" cy="220" r="2" fill="#fde047" />
+    <circle cx="65" cy="245" r="2" fill="#fde047" />
+
+    <!-- Raised Arms Joyfully Tossing Flower Petals Upward! -->
+    <!-- Left Hand raised high -->
+    <path d="M 35,160 Q 10,120 18,70 Q 30,68 32,85 Q 26,125 45,165 Z" fill="#581c87" />
+    <!-- Left Hand Palm with petals -->
+    <ellipse cx="20" cy="65" rx="7" ry="8" fill="#fed7aa" />
+
+    <!-- Right Hand raised high tossing petals -->
+    <path d="M 95,160 Q 120,120 112,70 Q 100,68 98,85 Q 104,125 85,165 Z" fill="#581c87" />
+    <!-- Right Hand Palm -->
+    <ellipse cx="110" cy="65" rx="7" ry="8" fill="#fed7aa" />
+
+    <!-- Head & Joyful Face looking up -->
+    <ellipse cx="65" cy="105" rx="27" ry="30" fill="#fed7aa" />
+    <!-- Hair -->
+    <path d="M 38,100 C 36,72 50,62 65,62 C 80,62 94,72 92,100 C 88,78 75,76 65,76 C 52,76 42,80 38,100 Z" fill="#0f172a" />
+    <!-- Happy smiling face looking up at petals -->
+    <ellipse cx="56" cy="102" rx="3.5" ry="4" fill="#0f172a" />
+    <ellipse cx="74" cy="102" rx="3.5" ry="4" fill="#0f172a" />
+    <path d="M 56,118 Q 65,130 74,118" fill="none" stroke="#be123c" stroke-width="3" stroke-linecap="round" />
+    <circle cx="65" cy="92" r="2" fill="#dc2626" />
+  </g>
+
+  <!-- CHILD 4 (RIGHT): GIRL IN AUSPICIOUS CRIMSON RED LEHENGA CHOLI -->
+  <g id="child-girl-red" transform="translate(970, 90)">
+    <!-- Shadow under feet -->
+    <ellipse cx="65" cy="340" rx="60" ry="13" fill="#78350f" opacity="0.25" />
+
+    <!-- Crimson Red Flared Lehenga with Gota Patti chevron zigzags -->
+    <path d="M 45,190 Q 20,265 5,335 Q 65,350 125,335 Q 110,265 85,190 Z" fill="#be123c" stroke="#e11d48" stroke-width="2" />
+    <!-- Golden Gota Patti Borders & Patterns -->
+    <path d="M 12,320 Q 65,335 118,320" stroke="#fbbf24" stroke-width="4" fill="none" />
+    <path d="M 18,300 Q 65,315 112,300" stroke="#fde047" stroke-width="2" stroke-dasharray="6,4" fill="none" />
+    <!-- Gota Chevron zigzags -->
+    <path d="M 30,270 L 40,260 L 50,270 L 60,260 L 70,270 L 80,260 L 90,270 L 100,260" stroke="#fbbf24" stroke-width="2.5" fill="none" />
+
+    <!-- Choli Blouse (Ruby Red with Gold Piping) -->
+    <path d="M 42,135 L 38,190 L 92,190 L 88,135 Z" fill="#9f1239" stroke="#fbbf24" stroke-width="1.5" />
+    <path d="M 42,135 Q 65,150 88,135" stroke="#fbbf24" stroke-width="2" fill="none" />
+
+    <!-- Red Sheer Dupatta Draped elegantly over shoulder -->
+    <path d="M 40,140 Q 25,210 40,285 Q 52,285 45,210 Q 42,155 46,140 Z" fill="#e11d48" opacity="0.8" />
+    <!-- Golden Dupatta Border -->
+    <path d="M 40,140 Q 25,210 40,285" stroke="#fbbf24" stroke-width="2" fill="none" />
+
+    <!-- Arms: Holding Dupatta & Reaching out for flower petals -->
+    <path d="M 40,145 Q 20,180 35,215" stroke="#fcd34d" stroke-width="10" stroke-linecap="round" fill="none" />
+    <path d="M 90,145 Q 115,175 105,210" stroke="#fcd34d" stroke-width="10" stroke-linecap="round" fill="none" />
+
+    <!-- Head & Face smiling upward -->
+    <ellipse cx="65" cy="90" rx="26" ry="28" fill="#fed7aa" />
+    <!-- Hairstyle: Open flowing hair with red rose flower hairpin -->
+    <path d="M 38,90 C 36,60 50,50 65,50 C 80,50 94,60 92,90 C 98,125 90,150 85,165 C 82,145 85,115 85,90 C 80,65 50,65 45,90 Z" fill="#1e293b" />
+    <!-- Red Rose in hair -->
+    <circle cx="88" cy="68" r="5" fill="#e11d48" />
+    <circle cx="86" cy="66" r="3" fill="#fda4af" />
+    <!-- Face: Joyful smiling eyes & bindi -->
+    <ellipse cx="57" cy="87" rx="3.5" ry="4" fill="#0f172a" />
+    <ellipse cx="73" cy="87" rx="3.5" ry="4" fill="#0f172a" />
+    <circle cx="65" cy="79" r="2.5" fill="#dc2626" />
+    <path d="M 58,103 Q 65,113 72,103" fill="none" stroke="#be123c" stroke-width="2.5" stroke-linecap="round" />
+  </g>
+
+  <!-- MID-AIR FALLING MARIGOLD PETALS & GOLDEN SPARKLES -->
+  <g id="flower-shower">
+    <!-- Orange & Yellow Marigold petals floating in air -->
+    <ellipse cx="800" cy="50" rx="5" ry="8" transform="rotate(25, 800, 50)" fill="#f97316" />
+    <ellipse cx="825" cy="35" rx="6" ry="9" transform="rotate(-35, 825, 35)" fill="#eab308" />
+    <ellipse cx="860" cy="45" rx="5" ry="7" transform="rotate(45, 860, 45)" fill="#ea580c" />
+    <ellipse cx="890" cy="70" rx="6" ry="8" transform="rotate(15, 890, 70)" fill="#facc15" />
+    <ellipse cx="920" cy="110" rx="5" ry="9" transform="rotate(-20, 920, 110)" fill="#f97316" />
+    <ellipse cx="760" cy="75" rx="6" ry="7" transform="rotate(60, 760, 75)" fill="#eab308" />
+    <ellipse cx="720" cy="120" rx="5" ry="8" transform="rotate(-40, 720, 120)" fill="#ea580c" />
+    <ellipse cx="960" cy="130" rx="6" ry="9" transform="rotate(30, 960, 130)" fill="#facc15" />
+    <ellipse cx="840" cy="115" rx="7" ry="10" transform="rotate(-15, 840, 115)" fill="#f97316" />
+    <ellipse cx="870" cy="150" rx="5" ry="8" transform="rotate(50, 870, 150)" fill="#eab308" />
+    <ellipse cx="670" cy="140" rx="6" ry="8" transform="rotate(-25, 670, 140)" fill="#ea580c" />
+
+    <!-- Golden Light Rays & Sparkle Stars -->
+    <g fill="#fde047" opacity="0.8">
+      <!-- 4-point sparkle stars -->
+      <path d="M 750,90 Q 750,100 760,100 Q 750,100 750,110 Q 750,100 740,100 Q 750,100 750,90 Z" />
+      <path d="M 870,25 Q 870,35 880,35 Q 870,35 870,45 Q 870,35 860,35 Q 870,35 870,25 Z" />
+      <path d="M 980,85 Q 980,95 990,95 Q 980,95 980,105 Q 980,95 970,95 Q 980,95 980,85 Z" />
+      <path d="M 640,65 Q 640,75 650,75 Q 640,75 640,85 Q 640,75 630,75 Q 640,75 640,65 Z" />
+      <path d="M 1060,120 Q 1060,130 1070,130 Q 1060,130 1060,140 Q 1060,130 1050,130 Q 1060,130 1060,120 Z" />
+    </g>
+  </g>
+
+  <!-- ======================================================== -->
+  <!-- LEFT SIDE: ORNATE ROYAL BLUE "DIWALI CARNIVAL" PLAQUE -->
+  <!-- ======================================================== -->
+  <g id="diwali-carnival-plaque" transform="translate(100, 45)" filter="url(#shadowLg)">
+    <!-- Main Scalloped Arch Plaque Body -->
+    <path d="
+      M 40,30
+      C 60,30 75,18 95,18
+      C 115,18 130,30 150,30
+      L 250,30
+      C 270,30 285,45 285,65
+      L 285,160
+      C 285,180 270,195 250,195
+      L 150,195
+      C 130,195 115,207 95,207
+      C 75,207 60,195 40,195
+      L 15,195
+      C -5,195 -20,180 -20,160
+      L -20,65
+      C -20,45 -5,30 15,30
+      Z
+    " fill="url(#royalBlue)" stroke="url(#goldGradient)" stroke-width="4.5" />
+
+    <!-- Inner Filigree Border -->
+    <path d="
+      M 40,38
+      C 58,38 72,26 95,26
+      C 118,26 132,38 150,38
+      L 242,38
+      C 258,38 277,50 277,66
+      L 277,154
+      C 277,170 258,187 242,187
+      L 150,187
+      C 132,187 118,199 95,199
+      C 72,199 58,187 40,187
+      L 23,187
+      C 7,187 -12,170 -12,154
+      L -12,66
+      C -12,50 7,38 23,38
+      Z
+    " fill="none" stroke="#fde047" stroke-width="1.5" stroke-dasharray="5,3" />
+
+    <!-- Ornate Lit Golden Diya on top of Arch -->
+    <g transform="translate(95, 12)">
+      <!-- Diya Base -->
+      <path d="M -16,4 Q 0,10 16,4 Q 10,-4 -16,4 Z" fill="#d97706" stroke="#fbbf24" stroke-width="1.5" />
+      <!-- Glowing Flame -->
+      <path d="M 0,2 Q -4,-10 0,-18 Q 4,-10 0,2 Z" fill="#fde047" filter="url(#glowGold)" />
+      <circle cx="0" cy="-4" r="3.5" fill="#f97316" />
+    </g>
+
+    <!-- Four-Corner Floral Ornaments -->
+    <circle cx="-5" cy="48" r="3" fill="#fbbf24" />
+    <circle cx="270" cy="48" r="3" fill="#fbbf24" />
+    <circle cx="-5" cy="177" r="3" fill="#fbbf24" />
+    <circle cx="270" cy="177" r="3" fill="#fbbf24" />
+
+    <!-- Typography: DIWALI (Ornate Classical Serif) -->
+    <text x="128" y="98" font-family="'Cinzel', 'Playfair Display', Georgia, serif" font-size="44" font-weight="900" text-anchor="middle" fill="url(#goldText)" letter-spacing="4" filter="url(#glowGold)">
+      DIWALI
+    </text>
+
+    <!-- Divider Line with Diamond -->
+    <line x1="30" y1="112" x2="225" y2="112" stroke="#fbbf24" stroke-width="1.5" opacity="0.8" />
+    <polygon points="128,108 132,112 128,116 124,112" fill="#fde047" />
+
+    <!-- Typography: CARNIVAL -->
+    <text x="128" y="152" font-family="'Cinzel', 'Montserrat', sans-serif" font-size="28" font-weight="900" text-anchor="middle" fill="#ffffff" letter-spacing="5">
+      CARNIVAL
+    </text>
+
+    <!-- Subtitle: NEW ARRIVALS with Sparkles -->
+    <g transform="translate(128, 240)">
+      <!-- Sparkle on left -->
+      <path d="M -90,-8 Q -90,0 -82,0 Q -90,0 -90,8 Q -90,0 -98,0 Q -90,0 -90,-8 Z" fill="#fbbf24" />
+      <text x="0" y="0" font-family="'Cinzel', 'Playfair Display', Georgia, serif" font-size="24" font-weight="900" text-anchor="middle" fill="#ffffff" letter-spacing="4">
+        NEW ARRIVALS
+      </text>
+      <!-- Sparkle on right -->
+      <path d="M 90,-8 Q 90,0 98,0 Q 90,0 90,8 Q 90,0 82,0 Q 90,0 90,-8 Z" fill="#fbbf24" />
+      <!-- Store Label -->
+      <text x="0" y="24" font-family="system-ui, sans-serif" font-size="12" font-weight="800" text-anchor="middle" fill="#fde047" letter-spacing="2">
+        JOJI KIDS ZONE • DEWAS
+      </text>
+    </g>
+  </g>
+
+  <!-- ======================================================== -->
+  <!-- RIGHT SIDE: ORNATE MAROON "FLAT 40%" PLAQUE -->
+  <!-- ======================================================== -->
+  <g id="flat-40-plaque" transform="translate(1290, 75)" filter="url(#shadowLg)">
+    <!-- Ornate Arch / Scalloped Plaque Shape -->
+    <path d="
+      M 75,-25
+      C 95,-25 110,-10 118,5
+      C 135,5 150,20 150,40
+      L 150,180
+      C 150,200 135,215 115,215
+      L -25,215
+      C -45,215 -60,200 -60,180
+      L -60,40
+      C -60,20 -45,5 -28,5
+      C -20,-10 -5,-25 15,-25
+      Z
+    " fill="url(#rubyMaroon)" stroke="#fbbf24" stroke-width="4.5" />
+
+    <!-- Dotted Gold Pearl Border -->
+    <path d="
+      M 75,-17
+      C 90,-17 103,-4 110,9
+      C 126,9 140,22 140,38
+      L 140,172
+      C 140,188 126,205 107,205
+      L -17,205
+      C -33,205 -50,188 -50,172
+      L -50,38
+      C -50,22 -36,9 -20,9
+      C -13,-4 0,-17 15,-17
+      Z
+    " fill="none" stroke="#fde047" stroke-width="2" stroke-dasharray="3,5" />
+
+    <!-- Typography: FLAT -->
+    <text x="45" y="45" font-family="'Cinzel', 'Playfair Display', Georgia, serif" font-size="28" font-weight="800" text-anchor="middle" fill="#fde047" letter-spacing="4">
+      FLAT
+    </text>
+
+    <!-- Typography: 40% (Prominent Luxury Gold & White) -->
+    <text x="45" y="130" font-family="'Cinzel', 'Playfair Display', Georgia, serif" font-size="82" font-weight="900" text-anchor="middle" fill="#ffffff" letter-spacing="-2" filter="url(#glowGold)">
+      40<tspan font-size="44" dy="-26">%</tspan>
+    </text>
+
+    <!-- Subtitle: OFF / FESTIVE SPECIAL -->
+    <rect x="-15" y="148" width="120" height="24" rx="12" fill="#fbbf24" />
+    <text x="45" y="165" font-family="system-ui, sans-serif" font-size="12" font-weight="900" text-anchor="middle" fill="#881337" letter-spacing="2">
+      OFF • LIMITED
+    </text>
+
+    <text x="45" y="195" font-family="system-ui, sans-serif" font-size="10" font-weight="800" text-anchor="middle" fill="#fde047" letter-spacing="1.5">
+      ON ETHNIC WEAR
+    </text>
+  </g>
+</svg>

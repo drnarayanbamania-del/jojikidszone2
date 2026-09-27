@@ -53,6 +53,28 @@ interface SlideData {
 
 const SLIDES: SlideData[] = [
   {
+    id: 'diwali-carnival',
+    isFullBanner: true,
+    badge: '🪔 DIWALI CARNIVAL • FLAT 40% OFF',
+    badgeIcon: 'Sparkles',
+    timerBadge: 'DIWALI SPECIAL',
+    title: 'DIWALI CARNIVAL',
+    highlightText: 'FLAT 40% OFF',
+    subtitle: 'Royal Festive Kurta Sets, Designer Peplum Lehengas & Kids Ethnic Wear • Joji Kids Zone Dewas',
+    discounts: ['Flat 40% Off', 'Royal Kurta Sets', 'Lehenga Choli', 'Festive Accessories'],
+    couponCode: 'DIWALI40',
+    couponLabel: 'Coupon: DIWALI40',
+    ctaText: 'Shop Diwali Carnival',
+    categorySlug: 'ethnic-wear',
+    quickFilterTag: 'FESTIVE',
+    storeLocation: '120 A.B. Road, Dewas',
+    whatsAppNumber: '9893380637',
+    bgGradient: 'from-[#421118] via-[#701a28] to-[#991b1b]',
+    accentGlow: 'from-amber-500/35 via-rose-500/25 to-yellow-400/20',
+    imageUrl: '/diwali-carnival-banner.svg',
+    imageAlt: 'Diwali Carnival - Kids Ethnic Wear Flat 40% Off - Joji Kids Zone Dewas',
+  },
+  {
     id: 'dewas-festive-ethnic',
     isFullBanner: true,
     badge: '👑 DEWAS SPECIAL • WEAR • PLAY • SMILE',
@@ -94,8 +116,8 @@ const SLIDES: SlideData[] = [
     imageAlt: 'Happy kids in casual trendy outfits smiling',
   },
   {
-    id: 'diwali-carnival',
-    badge: '✨ FESTIVE CARNIVAL',
+    id: 'festive-ethnic-showcase',
+    badge: '✨ ROYAL ETHNIC FEST',
     badgeIcon: 'Sparkles',
     timerBadge: 'LIMITED EDITION',
     title: 'PREP UP FOR',
@@ -390,12 +412,12 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
                 onClick={() => handleSlideCta(slide)}
               >
                 <img
-                  src={customUploadedBanner || slide.imageUrl}
+                  src={slide.id === 'diwali-carnival' ? slide.imageUrl : (customUploadedBanner || slide.imageUrl)}
                   alt={slide.imageAlt}
                   className="w-full h-full max-h-[460px] object-cover sm:object-contain rounded-2xl shadow-2xl transition-transform duration-500 group-hover/fullbanner:scale-[1.01]"
                   referrerPolicy="no-referrer"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/festive-banner.svg';
+                    (e.target as HTMLImageElement).src = '/diwali-carnival-banner.svg';
                   }}
                 />
 
