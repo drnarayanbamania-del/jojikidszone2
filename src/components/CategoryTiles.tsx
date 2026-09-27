@@ -121,8 +121,8 @@ export const CategoryTiles: React.FC<CategoryTilesProps> = ({
         </div>
       </div>
 
-      {/* Grid of Category Visual Tiles */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-3.5">
+      {/* Grid / Horizontal Track of Category Visual Tiles */}
+      <div className="flex sm:grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-3.5 overflow-x-auto sm:overflow-visible no-scrollbar snap-x snap-mandatory pb-2 sm:pb-0">
         {categories.map((cat) => {
           const fallbackData = DEFAULT_CATEGORY_IMAGES[cat.slug] || {
             image:
@@ -151,10 +151,10 @@ export const CategoryTiles: React.FC<CategoryTilesProps> = ({
                   onSelectCategory(cat.slug);
                 }
               }}
-              className={`group relative rounded-2xl sm:rounded-3xl overflow-hidden cursor-pointer transition-all duration-300 flex flex-col justify-end text-left aspect-3/4 sm:aspect-4/5 border-2 shadow-xs hover:shadow-xl hover:shadow-amber-500/15 ${
+              className={`group relative rounded-2xl sm:rounded-3xl overflow-hidden cursor-pointer transition-all duration-300 flex flex-col justify-end text-left w-[155px] sm:w-auto shrink-0 snap-start aspect-4/5 border-2 shadow-xs hover:shadow-2xl hover:shadow-amber-500/15 ${
                 isSelected
-                  ? 'border-amber-500 ring-4 ring-amber-500/20 scale-[1.03]'
-                  : 'border-slate-200/80 dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-500 hover:-translate-y-1'
+                  ? 'border-amber-500 ring-4 ring-amber-500/25 scale-[1.03] z-10 shadow-lg'
+                  : 'border-slate-200/90 dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-500 hover:-translate-y-1'
               }`}
             >
               {/* Background Product Image */}
@@ -163,20 +163,20 @@ export const CategoryTiles: React.FC<CategoryTilesProps> = ({
                 alt={`${cat.name} at JOJI Kids Zone`}
                 referrerPolicy="no-referrer"
                 loading="lazy"
-                className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700"
+                className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-108 transition-transform duration-700 ease-out"
               />
 
               {/* Multi-tone Gradient Overlay to ensure maximum text legibility */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10 group-hover:from-black/95 transition-all duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/45 to-transparent group-hover:from-slate-950 transition-all duration-300" />
 
               {/* Top Floating Badge with Brand / Tag */}
-              <div className="absolute top-2.5 inset-x-2.5 flex items-center justify-between z-10">
-                <span className="text-[9px] font-black uppercase tracking-wider text-amber-300 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-md border border-amber-300/30">
+              <div className="absolute top-2.5 inset-x-2.5 flex items-center justify-between z-10 gap-1">
+                <span className="text-[9px] font-black uppercase tracking-wider text-amber-300 bg-slate-950/70 backdrop-blur-md px-2 py-0.5 rounded-md border border-amber-300/30 truncate">
                   {brandBadge.split(' ')[0]}
                 </span>
                 {count > 0 && (
-                  <span className="text-[10px] font-bold text-white bg-white/20 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20">
-                    {count} {count === 1 ? 'item' : 'items'}
+                  <span className="text-[9px] font-bold text-white bg-white/20 backdrop-blur-md px-1.5 py-0.5 rounded-full border border-white/20 shrink-0">
+                    {count}
                   </span>
                 )}
               </div>
@@ -187,39 +187,39 @@ export const CategoryTiles: React.FC<CategoryTilesProps> = ({
               </div>
 
               {/* Bottom Content Area */}
-              <div className="relative z-10 p-3 sm:p-4 space-y-1">
+              <div className="relative z-10 p-3 sm:p-3.5 space-y-1">
                 <div className="flex items-center gap-1.5">
                   <div
-                    className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                    className={`w-5.5 h-5.5 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
                       isSelected
                         ? 'bg-amber-400 text-slate-950 font-bold'
-                        : 'bg-white/25 text-white group-hover:bg-amber-400 group-hover:text-slate-950'
+                        : 'bg-white/20 text-white group-hover:bg-amber-400 group-hover:text-slate-950'
                     }`}
                   >
-                    <IconComp className="w-3.5 h-3.5" />
+                    <IconComp className="w-3 h-3" />
                   </div>
-                  <h3 className="font-display font-black text-sm sm:text-base text-white tracking-tight leading-tight group-hover:text-amber-300 transition-colors">
+                  <h3 className="font-display font-black text-sm text-white tracking-tight leading-tight group-hover:text-amber-300 transition-colors truncate">
                     {cat.name}
                   </h3>
                 </div>
 
-                <p className="text-[11px] text-slate-300 line-clamp-1 leading-snug font-medium">
+                <p className="text-[10px] text-slate-300 line-clamp-1 leading-tight font-medium">
                   {tagline}
                 </p>
 
-                {/* Explore Action Button */}
-                <div className="pt-1 flex items-center justify-between">
+                {/* Explore Action Indicator */}
+                <div className="pt-0.5 flex items-center justify-between">
                   <span
-                    className={`text-[10px] font-black uppercase tracking-wider flex items-center gap-1 ${
-                      isSelected ? 'text-amber-300' : 'text-amber-200 group-hover:text-amber-300'
+                    className={`text-[9px] font-black uppercase tracking-wider flex items-center gap-1 ${
+                      isSelected ? 'text-amber-300' : 'text-amber-200/90 group-hover:text-amber-300'
                     }`}
                   >
-                    <span>{isSelected ? 'Browsing' : 'Explore'}</span>
-                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                    <span>{isSelected ? 'Active' : 'Shop'}</span>
+                    <ArrowRight className="w-2.5 h-2.5 group-hover:translate-x-1 transition-transform" />
                   </span>
 
                   {isSelected && (
-                    <span className="w-2 h-2 rounded-full bg-amber-400 ring-4 ring-amber-400/40" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 ring-4 ring-amber-400/40" />
                   )}
                 </div>
               </div>
