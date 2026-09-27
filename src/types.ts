@@ -118,3 +118,16 @@ export interface ProductReview {
   created_at: string;
 }
 
+export interface PriceDropAlert {
+  id: string;
+  productId: string;
+  productName: string;
+  productImage: string;
+  email: string;
+  currentPrice: number;
+  targetPrice: number;
+  alertType: 'any_drop' | 'target_price';
+  createdAt: string;
+  notified?: boolean;
+}
+

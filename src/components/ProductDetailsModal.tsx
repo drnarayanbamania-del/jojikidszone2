@@ -3,6 +3,7 @@ import { X, Star, Heart, ShoppingBag, Truck, ShieldCheck, Check, RotateCcw, Mess
 import { Product } from '../types';
 import { ProductReviews } from './ProductReviews';
 import { SizeGuideModal } from './SizeGuideModal';
+import { PriceDropAlertSection } from './PriceDropAlertSection';
 
 interface ProductDetailsModalProps {
   product: Product | null;
@@ -154,6 +155,9 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
                 </span>
               )}
             </div>
+
+            {/* Price Drop Alert Feature */}
+            <PriceDropAlertSection product={product} />
 
             {/* Navigation Tabs */}
             <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800">
