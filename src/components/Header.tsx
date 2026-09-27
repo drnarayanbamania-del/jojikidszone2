@@ -107,8 +107,6 @@ export const Header: React.FC<HeaderProps> = ({
               <Sparkles className="w-3.5 h-3.5 animate-pulse text-amber-200" />
               Special launch offer: Use code <span className="bg-white/20 px-1.5 py-0.5 rounded font-mono uppercase tracking-wider text-amber-100 font-bold">JOJI15</span> for 15% OFF!
             </span>
-            <span className="hidden md:inline text-white/70">|</span>
-            <span className="hidden md:inline">🚚 Free Delivery on orders over ₹999</span>
           </div>
 
           {/* Instagram connect link & Contact Us */}
