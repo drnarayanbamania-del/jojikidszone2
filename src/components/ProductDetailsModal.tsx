@@ -1,26 +1,33 @@
 import React, { useState } from 'react';
 import { X, Star, Heart, ShoppingBag, Truck, ShieldCheck, Check, RotateCcw, MessageSquare, Info, Sparkles, Ruler, Share2 } from 'lucide-react';
-import { Product } from '../types';
+import { Product, Category } from '../types';
 import { ProductReviews } from './ProductReviews';
 import { SizeGuideModal } from './SizeGuideModal';
 import { PriceDropAlertSection } from './PriceDropAlertSection';
 import { ProductImageZoom } from './ProductImageZoom';
+import { ComplementaryItemsCarousel } from './ComplementaryItemsCarousel';
 import { shareProduct } from '../lib/shareProduct';
 
 interface ProductDetailsModalProps {
   product: Product | null;
+  allProducts?: Product[];
+  categories?: Category[];
   onClose: () => void;
   isWishlisted: boolean;
   onToggleWishlist: (productId: string) => void;
   onAddToCart: (productId: string, size: string | null) => void;
+  onSelectProduct?: (product: Product) => void;
 }
 
 export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
   product,
+  allProducts = [],
+  categories = [],
   onClose,
   isWishlisted,
   onToggleWishlist,
   onAddToCart,
+  onSelectProduct,
 }) => {
   if (!product) return null;
 
@@ -326,6 +333,19 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
                 />
               </div>
             )}
+
+            {/* Complementary Items & Matching Accessories / Socks Carousel */}
+            <ComplementaryItemsCarousel
+              currentProduct={product}
+              allProducts={allProducts}
+              categories={categories}
+              onAddToCart={onAddToCart}
+              onSelectProduct={(p) => {
+                if (onSelectProduct) {
+                  onSelectProduct(p);
+                }
+              }}
+            />
           </div>
 
           {/* Persistent Action CTAs */}

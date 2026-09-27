@@ -938,10 +938,13 @@ export default function App() {
       {/* Quick View Product Modal */}
       <ProductDetailsModal
         product={quickViewProduct}
+        allProducts={products}
+        categories={categories}
         onClose={() => setQuickViewProduct(null)}
         isWishlisted={quickViewProduct ? wishlistProductIds.has(quickViewProduct.id) : false}
         onToggleWishlist={handleToggleWishlist}
         onAddToCart={handleAddToCart}
+        onSelectProduct={(prod) => setQuickViewProduct(prod)}
       />
 
       {/* Cart Slide-Over Drawer */}
