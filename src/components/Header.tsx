@@ -15,7 +15,8 @@ import {
   Sun,
   Moon,
   Instagram,
-  Headphones
+  Headphones,
+  MapPin,
 } from 'lucide-react';
 import { FilterState, Product, Category } from '../types';
 import { JojiLogo } from './JojiLogo';
@@ -148,15 +149,17 @@ export const Header: React.FC<HeaderProps> = ({
               {/* Small and attractive official logo */}
               <JojiLogo size="md" className="group-hover:scale-105 transition-transform duration-200" />
               <div>
-                <JojiBrandTitle size="md" />
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium tracking-wide flex items-center gap-1 mt-0.5">
-                  <span className="font-bold text-[#EC4899]">Fashion</span>
-                  <span className="text-slate-300 dark:text-slate-600">•</span>
-                  <span className="font-bold text-[#16A34A] dark:text-[#22C55E]">Fun</span>
-                  <span className="text-slate-300 dark:text-slate-600">•</span>
-                  <span className="font-bold text-[#0284C7] dark:text-[#38BDF8]">Toys</span>
-                  <span className="text-slate-300 dark:text-slate-600 hidden sm:inline">•</span>
-                  <span className="hidden sm:inline text-slate-400 dark:text-slate-500">120 A.B. Road, Dewas</span>
+                <JojiBrandTitle size="md" withBadge={true} />
+                <p className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-semibold tracking-wide flex items-center gap-1.5 mt-0.5">
+                  <span className="font-black text-[#EC4899] uppercase tracking-wider text-[9.5px]">Fashion</span>
+                  <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
+                  <span className="font-black text-[#16A34A] dark:text-[#22C55E] uppercase tracking-wider text-[9.5px]">Fun</span>
+                  <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
+                  <span className="font-black text-[#0284C7] dark:text-[#38BDF8] uppercase tracking-wider text-[9.5px]">Toys</span>
+                  <span className="hidden sm:inline-flex items-center gap-1 pl-1.5 text-[10px] text-slate-400 dark:text-slate-500 font-medium border-l border-slate-200 dark:border-slate-800 ml-1">
+                    <MapPin className="w-2.5 h-2.5 text-amber-500 shrink-0" />
+                    <span>120 A.B. Road, Dewas</span>
+                  </span>
                 </p>
               </div>
             </button>

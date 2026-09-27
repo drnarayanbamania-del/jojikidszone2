@@ -549,17 +549,17 @@ export default function App() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-slate-800">
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="font-display font-extrabold text-xl sm:text-2xl text-slate-900 dark:text-white tracking-tight">
+                <h2 className="font-display font-black text-xl sm:text-2xl text-slate-900 dark:text-white tracking-tight">
                   {filter.selectedCategorySlug === 'all'
                     ? 'All Kids Outfits & Essentials'
-                    : categories.find((c) => c.slug === filter.selectedCategorySlug)?.name || 'Collection'}
+                    : `${categories.find((c) => c.slug === filter.selectedCategorySlug)?.name || 'Collection'} Collection`}
                 </h2>
-                <span className="text-xs font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900 px-2.5 py-1 rounded-full border border-slate-200 dark:border-slate-800 shadow-2xs">
+                <span className="text-xs font-black text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 px-2.5 py-1 rounded-full border border-slate-200 dark:border-slate-800 shadow-2xs">
                   {filteredProducts.length} items
                 </span>
               </div>
-              <p className="text-xs text-slate-400 dark:text-slate-400 mt-0.5">
-                Soft organic fabrics, tested for playground durability and all-day comfort.
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
+                Certified child-safe cotton fabrics, tested for playground durability and all-day comfort.
               </p>
             </div>
 

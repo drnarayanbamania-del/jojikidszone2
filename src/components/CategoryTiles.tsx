@@ -97,11 +97,15 @@ export const CategoryTiles: React.FC<CategoryTilesProps> = ({
         <div>
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
-            <h2 className="font-display font-black text-xl sm:text-2xl text-slate-900 dark:text-white tracking-tight">
-              Featured Category Hub
+            <h2 className="font-display font-black text-xl sm:text-2xl text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+              <span>Curated Category Hub</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/80 px-2 py-0.5 rounded-md border border-amber-300/40 hidden sm:inline-flex items-center gap-1">
+                <Sparkles className="w-2.5 h-2.5 text-amber-500" />
+                Originals
+              </span>
             </h2>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
             Handcrafted for infants, toddlers, and young trendsetters • Explore authentic brand collections
           </p>
         </div>
