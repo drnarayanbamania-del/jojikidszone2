@@ -557,6 +557,9 @@ export default function App() {
           onOpenOrderHistory={() => setIsOrderHistoryOpen(true)}
           onOpenTrackingModal={() => setIsTrackModalOpen(true)}
           onSelectCategory={(slug) => handleFilterChange({ selectedCategorySlug: slug })}
+          isAdmin={Boolean(adminSession)}
+          onOpenAdminLogin={() => setIsAdminLoginOpen(true)}
+          onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
         />
 
         {/* Category Visual Hub / Photo Tiles */}

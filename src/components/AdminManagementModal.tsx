@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   X,
   Plus,
@@ -28,7 +28,10 @@ import {
   Image as ImageIcon,
   FileCheck,
   Check,
-  Zap
+  Zap,
+  Film,
+  Video,
+  Camera,
 } from 'lucide-react';
 import { Product, Category, AdminSession } from '../types';
 import { JojiBrandTitle } from './JojiBrandTitle';
@@ -45,6 +48,15 @@ import {
   formatBytes,
   ImageOptimizationResult
 } from '../lib/imageOptimizer';
+import {
+  VideoReel,
+  getStoredVideoReels,
+  saveStoredVideoReels,
+  resetStoredVideoReels,
+  getStoredCustomBanner,
+  saveStoredCustomBanner,
+  deleteStoredCustomBanner,
+} from '../lib/heroMediaStorage';
 
 interface AdminManagementModalProps {
   isOpen: boolean;
@@ -122,7 +134,96 @@ export const AdminManagementModal: React.FC<AdminManagementModalProps> = ({
   onLogout,
   onRefreshData,
 }) => {
-  const [activeTab, setActiveTab] = useState<'products' | 'categories'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'categories' | 'banners'>('products');
+
+  // Banner & Cinematic Video Management states
+  const [adminCustomBanner, setAdminCustomBanner] = useState<string | null>(() => getStoredCustomBanner());
+  const adminBannerInputRef = useRef<HTMLInputElement>(null);
+  const [adminVideoReels, setAdminVideoReels] = useState<VideoReel[]>(() => getStoredVideoReels());
+  const [adminSelectedReelId, setAdminSelectedReelId] = useState<string>(() => getStoredVideoReels()[0]?.id || 'diwali-reel');
+
+  const adminActiveReel = adminVideoReels.find((r) => r.id === adminSelectedReelId) || adminVideoReels[0];
+
+  const handleAdminBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      if (dataUrl) {
+        saveStoredCustomBanner(dataUrl);
+        setAdminCustomBanner(dataUrl);
+        showFeedback('success', '✓ Custom store banner uploaded and published to storefront!');
+      }
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const handleAdminDeleteBanner = () => {
+    if (window.confirm('Delete custom banner and restore the official Diwali Festive banner?')) {
+      deleteStoredCustomBanner();
+      setAdminCustomBanner(null);
+      showFeedback('success', '✓ Custom banner deleted. Official Diwali Festive banner restored.');
+    }
+  };
+
+  const handleAdminUpdateActiveReel = (field: keyof VideoReel, value: string) => {
+    setAdminVideoReels((prev) =>
+      prev.map((r) => (r.id === adminActiveReel.id ? { ...r, [field]: value } : r))
+    );
+  };
+
+  const handleAdminAddNewReel = () => {
+    const newId = `custom-reel-${Date.now()}`;
+    const newReel: VideoReel = {
+      id: newId,
+      title: `Store Promo Reel #${adminVideoReels.length + 1}`,
+      badge: '✨ DEWAS SPECIAL',
+      videoSrc: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
+      posterSrc: 'https://images.unsplash.com/photo-1543332164-6e82f355badc?w=900&auto=format&fit=crop&q=80',
+      discount: 'FLAT 30% OFF',
+      categorySlug: 'clothing',
+      headline: 'New Festive Collection 2026',
+      caption: 'Exclusive kids festive fashion and active wear available at 120 A.B. Road, Dewas.',
+      coupon: 'DEWAS30',
+      isCustom: true,
+    };
+    setAdminVideoReels((prev) => [...prev, newReel]);
+    setAdminSelectedReelId(newId);
+    showFeedback('success', 'New video reel added! Customize the details and click Save Video Reels.');
+  };
+
+  const handleAdminDeleteReel = (idToDelete: string) => {
+    if (adminVideoReels.length <= 1) {
+      showFeedback('error', 'At least one cinematic video reel must remain active.');
+      return;
+    }
+    const updated = adminVideoReels.filter((r) => r.id !== idToDelete);
+    setAdminVideoReels(updated);
+    setAdminSelectedReelId(updated[0].id);
+    saveStoredVideoReels(updated);
+    showFeedback('success', '✓ Video reel deleted.');
+  };
+
+  const handleAdminSaveVideoReels = () => {
+    const ok = saveStoredVideoReels(adminVideoReels);
+    if (ok) {
+      showFeedback('success', '✓ Cinematic video section and reels updated successfully!');
+    } else {
+      showFeedback('error', 'Failed saving video reels.');
+    }
+  };
+
+  const handleAdminResetVideoReels = () => {
+    if (window.confirm('Reset all cinematic video reels back to official defaults?')) {
+      resetStoredVideoReels();
+      const def = getStoredVideoReels();
+      setAdminVideoReels(def);
+      setAdminSelectedReelId(def[0].id);
+      showFeedback('success', '✓ All cinematic video reels reset to defaults.');
+    }
+  };
 
   // Product Filter and Search in Admin Panel
   const [searchQuery, setSearchQuery] = useState('');
@@ -464,6 +565,17 @@ export const AdminManagementModal: React.FC<AdminManagementModalProps> = ({
               >
                 <Layers className="w-3.5 h-3.5" />
                 <span>Categories ({categories.length})</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('banners')}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === 'banners'
+                    ? 'bg-amber-500 text-white shadow-xs'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Film className="w-3.5 h-3.5" />
+                <span>Banners &amp; Video</span>
               </button>
             </div>
 
@@ -814,6 +926,311 @@ export const AdminManagementModal: React.FC<AdminManagementModalProps> = ({
                       </div>
                     );
                   })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ---------------------------------------------------- */}
+          {/* TAB 3: BANNERS & CINEMATIC VIDEO SECTION MANAGEMENT  */}
+          {/* ---------------------------------------------------- */}
+          {activeTab === 'banners' && (
+            <div className="space-y-6">
+              {/* Section 1: Hero Banner Management */}
+              <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+                        <ImageIcon className="w-4 h-4 text-amber-500" />
+                        <span>Storefront Hero Promotional Banner</span>
+                      </h4>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          adminCustomBanner
+                            ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                            : 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+                        }`}
+                      >
+                        {adminCustomBanner ? 'Custom Banner Active' : 'Official Diwali Festive Banner'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      Upload promotional posters or delete custom banners to restore the default official carnival banner
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      ref={adminBannerInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleAdminBannerUpload}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => adminBannerInputRef.current?.click()}
+                      className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-md shadow-amber-500/20 flex items-center gap-1.5 transition-all cursor-pointer"
+                    >
+                      <Camera className="w-3.5 h-3.5" />
+                      <span>Upload New Banner</span>
+                    </button>
+
+                    {adminCustomBanner && (
+                      <button
+                        type="button"
+                        onClick={handleAdminDeleteBanner}
+                        className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Delete Banner</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Banner Preview Card */}
+                <div className="relative aspect-21/9 max-h-72 w-full rounded-2xl overflow-hidden bg-slate-950 border border-slate-200 dark:border-slate-800">
+                  <img
+                    src={adminCustomBanner || '/diwali-carnival-banner.svg'}
+                    alt="Active Storefront Banner Preview"
+                    className="w-full h-full object-contain"
+                  />
+                  <div className="absolute bottom-2 left-2 px-3 py-1 bg-black/75 backdrop-blur-md rounded-xl text-white text-[11px] font-bold border border-white/20">
+                    Live Preview:{' '}
+                    {adminCustomBanner
+                      ? 'Custom Uploaded Banner'
+                      : 'Official Diwali Festive Banner (Default)'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 2: Cinematic Video Section Management */}
+              <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
+                  <div>
+                    <h4 className="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+                      <Film className="w-4 h-4 text-amber-500" />
+                      <span>Cinematic Video Section &amp; Store Reels</span>
+                    </h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      Manage video URLs, titles, captions, and festive promo reels for Dewas store
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleAdminAddNewReel}
+                      className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-md shadow-amber-500/20 flex items-center gap-1.5 transition-all cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Video Reel</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleAdminSaveVideoReels}
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Save className="w-3.5 h-3.5" />
+                      <span>Save Video Reels</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Reels Grid & Editor Form */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                  {/* Left Column: Reels list */}
+                  <div className="lg:col-span-4 space-y-2">
+                    <span className="text-xs font-black uppercase tracking-wider text-slate-400">
+                      Active Reels ({adminVideoReels.length})
+                    </span>
+                    <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
+                      {adminVideoReels.map((reel, rIdx) => {
+                        const isSelected = reel.id === adminSelectedReelId;
+                        return (
+                          <div
+                            key={reel.id}
+                            onClick={() => setAdminSelectedReelId(reel.id)}
+                            className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-2 ${
+                              isSelected
+                                ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-500 ring-2 ring-amber-400/20 shadow-xs'
+                                : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 hover:border-slate-300'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold text-xs flex items-center justify-center shrink-0">
+                                {rIdx + 1}
+                              </span>
+                              <div className="min-w-0">
+                                <div className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                                  {reel.title}
+                                </div>
+                                <div className="text-[10px] text-slate-400 truncate">
+                                  {reel.discount} • {reel.coupon}
+                                </div>
+                              </div>
+                            </div>
+
+                            {adminVideoReels.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAdminDeleteReel(reel.id);
+                                }}
+                                title="Delete this video reel"
+                                className="p-1 text-slate-400 hover:text-rose-500 rounded-lg cursor-pointer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleAdminResetVideoReels}
+                      className="w-full py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer mt-2"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>Reset Video Reels to Defaults</span>
+                    </button>
+                  </div>
+
+                  {/* Right Column: Active Reel Editor Form */}
+                  <div className="lg:col-span-8 space-y-4">
+                    {adminActiveReel && (
+                      <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 space-y-4">
+                        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-2.5">
+                          <h5 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-1.5">
+                            <Video className="w-4 h-4 text-amber-500" />
+                            <span>Editing: {adminActiveReel.title}</span>
+                          </h5>
+                          <span className="text-[10px] font-mono text-slate-400">
+                            ID: {adminActiveReel.id}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                          <div>
+                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                              Reel Tab Title
+                            </label>
+                            <input
+                              type="text"
+                              value={adminActiveReel.title}
+                              onChange={(e) =>
+                                handleAdminUpdateActiveReel('title', e.target.value)
+                              }
+                              className="w-full px-3 py-2 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                              Badge Tag Pill
+                            </label>
+                            <input
+                              type="text"
+                              value={adminActiveReel.badge}
+                              onChange={(e) =>
+                                handleAdminUpdateActiveReel('badge', e.target.value)
+                              }
+                              className="w-full px-3 py-2 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
+                            />
+                          </div>
+
+                          <div className="sm:col-span-2">
+                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                              MP4 Video URL
+                            </label>
+                            <input
+                              type="text"
+                              value={adminActiveReel.videoSrc}
+                              onChange={(e) =>
+                                handleAdminUpdateActiveReel('videoSrc', e.target.value)
+                              }
+                              className="w-full px-3 py-2 text-xs font-mono bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
+                            />
+                          </div>
+
+                          <div className="sm:col-span-2">
+                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                              Video Poster Thumbnail Image URL
+                            </label>
+                            <input
+                              type="text"
+                              value={adminActiveReel.posterSrc}
+                              onChange={(e) =>
+                                handleAdminUpdateActiveReel('posterSrc', e.target.value)
+                              }
+                              className="w-full px-3 py-2 text-xs font-mono bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
+                            />
+                          </div>
+
+                          <div className="sm:col-span-2">
+                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                              Headline
+                            </label>
+                            <input
+                              type="text"
+                              value={adminActiveReel.headline}
+                              onChange={(e) =>
+                                handleAdminUpdateActiveReel('headline', e.target.value)
+                              }
+                              className="w-full px-3 py-2 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
+                            />
+                          </div>
+
+                          <div className="sm:col-span-2">
+                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                              Caption &amp; Store Description
+                            </label>
+                            <textarea
+                              rows={2}
+                              value={adminActiveReel.caption}
+                              onChange={(e) =>
+                                handleAdminUpdateActiveReel('caption', e.target.value)
+                              }
+                              className="w-full px-3 py-2 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                              Discount Tag
+                            </label>
+                            <input
+                              type="text"
+                              value={adminActiveReel.discount}
+                              onChange={(e) =>
+                                handleAdminUpdateActiveReel('discount', e.target.value)
+                              }
+                              className="w-full px-3 py-2 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                              Coupon Code
+                            </label>
+                            <input
+                              type="text"
+                              value={adminActiveReel.coupon}
+                              onChange={(e) =>
+                                handleAdminUpdateActiveReel('coupon', e.target.value.toUpperCase())
+                              }
+                              className="w-full px-3 py-2 text-xs font-mono font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

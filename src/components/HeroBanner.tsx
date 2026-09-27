@@ -14,20 +14,30 @@ import {
   RotateCcw,
   Truck,
   ShieldCheck,
-  Award,
-  Upload,
   Camera,
   Play,
   Pause,
   Volume2,
   VolumeX,
   Film,
-  Video,
-  Maximize2,
   MapPin,
   MessageCircle,
-  Flame,
+  Trash2,
+  Lock,
+  Settings,
+  ShieldAlert,
+  CheckCircle2,
+  AlertCircle,
+  X,
 } from 'lucide-react';
+import {
+  VideoReel,
+  getStoredVideoReels,
+  getStoredCustomBanner,
+  saveStoredCustomBanner,
+  deleteStoredCustomBanner,
+} from '../lib/heroMediaStorage';
+import { AdminVideoEditorModal } from './AdminVideoEditorModal';
 
 export interface HeroBannerProps {
   onQuickFilter: (tag: string | null, maxPrice?: number) => void;
@@ -35,6 +45,9 @@ export interface HeroBannerProps {
   onOpenOrderHistory?: () => void;
   onOpenTrackingModal?: () => void;
   onSelectCategory?: (categorySlug: string) => void;
+  isAdmin?: boolean;
+  onOpenAdminLogin?: () => void;
+  onOpenAdminPanel?: () => void;
 }
 
 interface SlideData {
@@ -56,7 +69,6 @@ interface SlideData {
   accentGlow: string;
   imageUrl: string;
   imageAlt: string;
-  videoUrl?: string;
   isFullBanner?: boolean;
   storeLocation?: string;
   whatsAppNumber?: string;
@@ -83,7 +95,6 @@ const SLIDES: SlideData[] = [
     bgGradient: 'from-[#380d12] via-[#5c1320] to-[#801726]',
     accentGlow: 'from-amber-500/35 via-rose-500/25 to-yellow-400/20',
     imageUrl: '/diwali-carnival-banner.svg',
-    videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
     imageAlt: 'Diwali Carnival - Kids Ethnic Wear Flat 40% Off - Joji Kids Zone Dewas',
   },
   {
@@ -209,22 +220,68 @@ const SLIDES: SlideData[] = [
   },
 ];
 
-// Curated Video Reel Data for Premium Video Area
-interface VideoReel {
-  id: string;
-  title: string;
-  badge: string;
-  videoSrc: string;
-  posterSrc: string;
-  discount: string;
-  categorySlug: string;
-  headline: string;
-  caption: string;
-  coupon: string;
-}
+export const HeroBanner: React.FC<HeroBannerProps> = ({
+  onQuickFilter,
+  onOpenWishlist,
+  onOpenOrderHistory,
+  onOpenTrackingModal,
+  onSelectCategory,
+  isAdmin = false,
+  onOpenAdminLogin,
+  onOpenAdminPanel,
+}) => {
+  // Mode: 'video' | 'banners'
+  const [heroMode, setHeroMode] = useState<'video' | 'banners'>('video');
 
-const VIDEO_REELS: VideoReel[] = [
-  {
+  // Video reels loaded from storage (managed via admin)
+  const [videoReels, setVideoReels] = useState<VideoReel[]>(() => getStoredVideoReels());
+  const [activeReelIdx, setActiveReelIdx] = useState(0);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(true);
+  const [isAudioMuted, setIsAudioMuted] = useState(true);
+  const [videoProgress, setVideoProgress] = useState(0);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+
+  // Admin video reels editor modal state
+  const [isAdminVideoEditorOpen, setIsAdminVideoEditorOpen] = useState(false);
+
+  // Custom festive banner loaded from storage (managed via admin)
+  const [customUploadedBanner, setCustomUploadedBanner] = useState<string | null>(() =>
+    getStoredCustomBanner()
+  );
+
+  // Banner & Video feedback toasts
+  const [actionToast, setActionToast] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null);
+
+  // Unauthorized admin prompt modal
+  const [adminAuthNotice, setAdminAuthNotice] = useState<string | null>(null);
+
+  // Carousel slide states
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [direction, setDirection] = useState(1);
+  const [isPaused, setIsPaused] = useState(false);
+  const [copiedCoupon, setCopiedCoupon] = useState<string | null>(null);
+  const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Sync with global custom banner and video reel storage events
+  useEffect(() => {
+    const handleBannerUpdate = () => {
+      setCustomUploadedBanner(getStoredCustomBanner());
+    };
+    const handleReelsUpdate = () => {
+      setVideoReels(getStoredVideoReels());
+    };
+
+    window.addEventListener('joji_banner_updated', handleBannerUpdate);
+    window.addEventListener('joji_video_reels_updated', handleReelsUpdate);
+    return () => {
+      window.removeEventListener('joji_banner_updated', handleBannerUpdate);
+      window.removeEventListener('joji_video_reels_updated', handleReelsUpdate);
+    };
+  }, []);
+
+  const currentReel = videoReels[activeReelIdx] || videoReels[0] || {
     id: 'diwali-reel',
     title: 'Royal Diwali Reel',
     badge: '✨ DIWALI SPECIAL',
@@ -235,86 +292,8 @@ const VIDEO_REELS: VideoReel[] = [
     headline: 'Sparkle in Royal Ethnic Wear',
     caption: 'Pure silk blends, handcrafted peplum lehengas & kurta sets for royal celebrations.',
     coupon: 'DIWALI40',
-  },
-  {
-    id: 'play-reel',
-    title: 'Active Fun & Toys',
-    badge: '🎈 PLAY & LEARN',
-    videoSrc: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
-    posterSrc: 'https://images.unsplash.com/photo-1543332164-6e82f355badc?w=900&auto=format&fit=crop&q=80',
-    discount: 'UNDER ₹699',
-    categorySlug: 'toys',
-    headline: 'Montessori Toys & Active Sneakers',
-    caption: 'Safe, non-toxic educational toys & comfortable cushioned shoes made for joyful little steps.',
-    coupon: 'TOYJOY',
-  },
-  {
-    id: 'baby-reel',
-    title: 'Organic Newborn Wear',
-    badge: '🌿 100% PURE COTTON',
-    videoSrc: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
-    posterSrc: 'https://images.unsplash.com/photo-1522771930-78848d9293e8?w=900&auto=format&fit=crop&q=80',
-    discount: 'BUY 2 GET 1 FREE',
-    categorySlug: 'clothing',
-    headline: 'Ultra-Soft Organic Rompers',
-    caption: 'Hypoallergenic baby wear designed with gentle seams for newborn tender skin.',
-    coupon: 'BABY35',
-  },
-];
-
-export const HeroBanner: React.FC<HeroBannerProps> = ({
-  onQuickFilter,
-  onOpenWishlist,
-  onOpenOrderHistory,
-  onOpenTrackingModal,
-  onSelectCategory,
-}) => {
-  // Mode: 'video' | 'banners'
-  const [heroMode, setHeroMode] = useState<'video' | 'banners'>('video');
-
-  // Video area states
-  const [activeReelIdx, setActiveReelIdx] = useState(0);
-  const [isVideoPlaying, setIsVideoPlaying] = useState(true);
-  const [isAudioMuted, setIsAudioMuted] = useState(true);
-  const [videoProgress, setVideoProgress] = useState(0);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-
-  // Carousel slide states
-  const [currentIdx, setCurrentIdx] = useState(0);
-  const [direction, setDirection] = useState(1);
-  const [isPaused, setIsPaused] = useState(false);
-  const [copiedCoupon, setCopiedCoupon] = useState<string | null>(null);
-  const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const [customUploadedBanner, setCustomUploadedBanner] = useState<string | null>(() => {
-    try {
-      return localStorage.getItem('joji_custom_festive_banner');
-    } catch {
-      return null;
-    }
-  });
-
-  const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      if (dataUrl) {
-        setCustomUploadedBanner(dataUrl);
-        try {
-          localStorage.setItem('joji_custom_festive_banner', dataUrl);
-        } catch (err) {
-          console.warn('Failed saving to localStorage:', err);
-        }
-      }
-    };
-    reader.readAsDataURL(file);
   };
 
-  const currentReel = VIDEO_REELS[activeReelIdx] || VIDEO_REELS[0];
   const slide = SLIDES[currentIdx];
 
   // Video Time Update & Progress
@@ -342,14 +321,15 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
     e.stopPropagation();
     if (isAudioMuted) {
       try {
-        const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        const AudioContextClass =
+          window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
         if (!audioContextRef.current && AudioContextClass) {
           audioContextRef.current = new AudioContextClass();
         }
         if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
           audioContextRef.current.resume();
         }
-        // Play soft soothing musical chime
         if (audioContextRef.current) {
           const ctx = audioContextRef.current;
           const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
@@ -373,6 +353,79 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
     } else {
       setIsAudioMuted(true);
     }
+  };
+
+  // ---------------------------------------------------------------------------
+  // ADMIN-GATED ACTIONS: Upload Banner, Delete Banner, Edit Video Section
+  // ---------------------------------------------------------------------------
+  const handleBannerUploadClick = () => {
+    if (!isAdmin) {
+      setAdminAuthNotice(
+        'Admin Login Required: Only authorized store administrators can upload and change storefront promotional banners.'
+      );
+      return;
+    }
+    fileInputRef.current?.click();
+  };
+
+  const handleBannerFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isAdmin) {
+      setAdminAuthNotice('Admin Login Required: Unauthorized banner upload attempt.');
+      return;
+    }
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      if (dataUrl) {
+        saveStoredCustomBanner(dataUrl);
+        setCustomUploadedBanner(dataUrl);
+        setActionToast({
+          message: '✓ Custom store banner uploaded and published successfully!',
+          type: 'success',
+        });
+        setTimeout(() => setActionToast(null), 3500);
+      }
+    };
+    reader.readAsDataURL(file);
+    // Reset file input value so same file can be uploaded again if needed
+    e.target.value = '';
+  };
+
+  const handleDeleteBannerClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isAdmin) {
+      setAdminAuthNotice(
+        'Admin Login Required: Only authorized store administrators can delete or reset promotional banners.'
+      );
+      return;
+    }
+
+    if (
+      window.confirm(
+        'Delete the custom uploaded banner and restore the official Diwali Festive banner?'
+      )
+    ) {
+      deleteStoredCustomBanner();
+      setCustomUploadedBanner(null);
+      setActionToast({
+        message: '✓ Custom banner deleted. Official Diwali Carnival banner restored.',
+        type: 'info',
+      });
+      setTimeout(() => setActionToast(null), 3500);
+    }
+  };
+
+  const handleEditVideoSectionClick = () => {
+    if (!isAdmin) {
+      setAdminAuthNotice(
+        'Admin Login Required: The Cinematic Video Section and video reels can only be customized and updated after logging in to the Admin section.'
+      );
+      return;
+    }
+    setIsAdminVideoEditorOpen(true);
   };
 
   // Carousel Auto-play timer for Banner mode
@@ -448,6 +501,15 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
 
   return (
     <div className="space-y-3">
+      {/* Hidden File Input for Admin Banner Upload */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleBannerFileChange}
+      />
+
       {/* Top Quick Ribbon & Mode Switcher Bar */}
       <div className="flex flex-wrap items-center justify-between bg-amber-400 dark:bg-amber-500 text-slate-950 px-3 sm:px-4 py-2 rounded-2xl font-bold text-xs shadow-xs gap-2">
         {/* Category shortcuts */}
@@ -493,8 +555,9 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
           </button>
         </div>
 
-        {/* Mode Switcher: Video Reel vs Graphic Banners */}
+        {/* Right Controls: Mode Switcher & Admin Banner Buttons */}
         <div className="flex items-center gap-2 ml-auto sm:ml-0">
+          {/* Experience Mode Toggle */}
           <div className="bg-slate-900/90 text-white p-0.5 rounded-xl flex items-center shadow-xs">
             <button
               type="button"
@@ -522,24 +585,88 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
             </button>
           </div>
 
-          {/* Admin Banner Upload Button */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleBannerUpload}
-          />
+          {/* ADMIN-ONLY BANNER CONTROLS */}
+          {/* 1. Upload Banner Button */}
           <button
-            onClick={() => fileInputRef.current?.click()}
-            title="Upload custom banner image"
-            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-white/95 hover:bg-white text-slate-900 rounded-lg text-[11px] font-bold shadow-xs transition active:scale-95 cursor-pointer"
+            type="button"
+            onClick={handleBannerUploadClick}
+            title={
+              isAdmin
+                ? 'Upload custom festive banner image (Admin Authorized)'
+                : 'Upload Banner (Admin Login Required)'
+            }
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold shadow-xs transition active:scale-95 cursor-pointer ${
+              isAdmin
+                ? 'bg-slate-950 text-amber-300 hover:bg-slate-900 border border-amber-400/40'
+                : 'bg-white/90 hover:bg-white text-slate-900'
+            }`}
           >
-            <Camera className="w-3.5 h-3.5 text-pink-600" />
-            <span>Upload Banner</span>
+            {isAdmin ? (
+              <Camera className="w-3.5 h-3.5 text-amber-400" />
+            ) : (
+              <Lock className="w-3.5 h-3.5 text-slate-500" />
+            )}
+            <span>{isAdmin ? 'Upload Banner' : 'Upload Banner'}</span>
           </button>
+
+          {/* 2. Delete Custom Banner Button (Only visible/active when custom banner exists) */}
+          {customUploadedBanner && (
+            <button
+              type="button"
+              onClick={handleDeleteBannerClick}
+              title={
+                isAdmin
+                  ? 'Delete custom banner and restore default (Admin Authorized)'
+                  : 'Delete Banner (Admin Login Required)'
+              }
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold shadow-xs transition active:scale-95 cursor-pointer ${
+                isAdmin
+                  ? 'bg-rose-600 hover:bg-rose-700 text-white'
+                  : 'bg-rose-100 hover:bg-rose-200 text-rose-800'
+              }`}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>{isAdmin ? 'Delete Banner' : 'Delete'}</span>
+            </button>
+          )}
+
+          {/* Admin Indicator Badge */}
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={onOpenAdminPanel}
+              title="Open Admin Management Console"
+              className="hidden lg:flex items-center gap-1 px-2 py-0.5 bg-slate-950 text-emerald-400 rounded-md text-[10px] font-black uppercase tracking-wider border border-emerald-500/40 cursor-pointer"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Admin Logged In</span>
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Floating Action Feedback Toast */}
+      {actionToast && (
+        <div
+          className={`p-3 rounded-2xl flex items-center justify-between text-xs font-bold shadow-md animate-in fade-in slide-in-from-top-1 ${
+            actionToast.type === 'success'
+              ? 'bg-emerald-500 text-white'
+              : 'bg-slate-900 text-amber-300 border border-amber-400/40'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <span>{actionToast.message}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setActionToast(null)}
+            className="p-1 hover:opacity-80 cursor-pointer"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* ========================================================================= */}
       {/* 1. PREMIUM HERO VIDEO AREA                                                */}
@@ -570,7 +697,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
             <div className="absolute inset-0 bg-[radial-gradient(#fbbf24_1px,transparent_1px)] [background-size:24px_24px] opacity-15" />
           </div>
 
-          {/* Top Video Header Bar (Live Badge, Reel Switcher, Playback Controls) */}
+          {/* Top Video Header Bar (Live Badge, Reel Switcher, Playback & Admin Controls) */}
           <div className="relative z-20 p-4 sm:p-6 flex flex-wrap items-center justify-between gap-3">
             {/* Live Reel Badge & Store Info */}
             <div className="flex items-center gap-2.5">
@@ -585,8 +712,31 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
               </span>
             </div>
 
-            {/* Video Controls (Play/Pause, Sound, Reel selector) */}
+            {/* Video Controls & Admin Section Update Button */}
             <div className="flex items-center gap-2">
+              {/* ADMIN-ONLY: Edit / Update Video Section Button */}
+              <button
+                type="button"
+                onClick={handleEditVideoSectionClick}
+                title={
+                  isAdmin
+                    ? 'Admin: Update Video Section & Reels'
+                    : 'Edit Video Section (Admin Login Required)'
+                }
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer backdrop-blur-md shadow-sm active:scale-95 ${
+                  isAdmin
+                    ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-amber-400/20'
+                    : 'bg-white/15 hover:bg-white/25 text-white/90 border border-white/20'
+                }`}
+              >
+                {isAdmin ? (
+                  <Settings className="w-3.5 h-3.5 text-slate-950 animate-spin-slow" />
+                ) : (
+                  <Lock className="w-3.5 h-3.5 text-amber-300" />
+                )}
+                <span>{isAdmin ? 'Edit Video Section' : 'Edit Video (Admin)'}</span>
+              </button>
+
               {/* Play / Pause Toggle */}
               <button
                 type="button"
@@ -613,7 +763,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
 
               {/* Reel Picker Tabs */}
               <div className="hidden md:flex items-center gap-1 bg-slate-900/80 backdrop-blur-md p-1 rounded-xl border border-white/10">
-                {VIDEO_REELS.map((reel, rIdx) => (
+                {videoReels.map((reel, rIdx) => (
                   <button
                     key={reel.id}
                     type="button"
@@ -656,19 +806,23 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
 
             {/* Action Bar (WhatsApp, Shop Now, Coupon) */}
             <div className="flex flex-wrap items-center gap-3 pt-2">
-              {/* Primary Shop Collection Button */}
               <button
                 type="button"
-                onClick={() => onSelectCategory ? onSelectCategory(currentReel.categorySlug) : onQuickFilter('FESTIVE')}
+                onClick={() =>
+                  onSelectCategory
+                    ? onSelectCategory(currentReel.categorySlug)
+                    : onQuickFilter('FESTIVE')
+                }
                 className="px-6 py-3 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm shadow-xl shadow-amber-400/25 flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
               >
                 <span>Shop This Reel</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
 
-              {/* Direct WhatsApp Consultation */}
               <a
-                href={`https://wa.me/919893380637?text=Hi%20Joji%20Kids%20Zone!%20I%20saw%20your%20${encodeURIComponent(currentReel.title)}%20and%20want%20to%20order.`}
+                href={`https://wa.me/919893380637?text=Hi%20Joji%20Kids%20Zone!%20I%20saw%20your%20${encodeURIComponent(
+                  currentReel.title
+                )}%20and%20want%20to%20order.`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-4 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs sm:text-sm shadow-lg shadow-emerald-500/25 flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
@@ -677,21 +831,23 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
                 <span>WhatsApp Dewas Store</span>
               </a>
 
-              {/* Copy Coupon Pill */}
               <button
                 type="button"
                 onClick={(e) => handleCopyCoupon(currentReel.coupon, e)}
                 className="px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 font-mono font-bold text-xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
               >
                 <Tag className="w-3.5 h-3.5 text-amber-400" />
-                <span>{copiedCoupon === currentReel.coupon ? '✓ Copied' : `Code: ${currentReel.coupon}`}</span>
+                <span>
+                  {copiedCoupon === currentReel.coupon
+                    ? '✓ Copied'
+                    : `Code: ${currentReel.coupon}`}
+                </span>
               </button>
             </div>
           </div>
 
-          {/* Bottom Video Progress Bar & Reel Selectors */}
+          {/* Bottom Video Progress Bar & Mobile Reel Selectors */}
           <div className="relative z-20 p-4 sm:p-6 pt-0 space-y-2">
-            {/* Seamless video loop progress bar */}
             <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-amber-400 to-yellow-300 transition-all duration-200"
@@ -699,9 +855,8 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
               />
             </div>
 
-            {/* Mobile Reel Selectors Strip */}
             <div className="flex md:hidden items-center justify-between gap-1 overflow-x-auto pt-1">
-              {VIDEO_REELS.map((reel, rIdx) => (
+              {videoReels.map((reel, rIdx) => (
                 <button
                   key={reel.id}
                   type="button"
@@ -744,7 +899,6 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
               <div
                 className={`absolute inset-0 bg-gradient-to-tr ${slide.accentGlow} pointer-events-none blur-3xl`}
               />
-              {/* Subtle grid pattern overlay */}
               <div className="absolute inset-0 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:20px_20px] opacity-10 pointer-events-none" />
 
               {slide.isFullBanner ? (
@@ -753,7 +907,11 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
                   onClick={() => handleSlideCta(slide)}
                 >
                   <img
-                    src={slide.id === 'diwali-carnival' ? slide.imageUrl : (customUploadedBanner || slide.imageUrl)}
+                    src={
+                      slide.id === 'diwali-carnival'
+                        ? customUploadedBanner || slide.imageUrl
+                        : customUploadedBanner || slide.imageUrl
+                    }
                     alt={slide.imageAlt}
                     className="w-full h-full max-h-[460px] object-cover sm:object-contain rounded-2xl shadow-2xl transition-transform duration-500 group-hover/fullbanner:scale-[1.01]"
                     referrerPolicy="no-referrer"
@@ -769,7 +927,9 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
                   >
                     <div className="flex items-center gap-2 sm:gap-4">
                       <a
-                        href={`https://wa.me/91${slide.whatsAppNumber || '9893380637'}?text=Hi%20Joji%20Kids%20Zone%20Dewas!%20I%20am%20interested%20in%20Festive%20Season%20Ethnic%20Wear`}
+                        href={`https://wa.me/91${
+                          slide.whatsAppNumber || '9893380637'
+                        }?text=Hi%20Joji%20Kids%20Zone%20Dewas!%20I%20am%20interested%20in%20Festive%20Season%20Ethnic%20Wear`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs shadow-md transition active:scale-95 cursor-pointer"
@@ -782,11 +942,26 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
                     </div>
 
                     <div className="flex items-center gap-2">
+                      {/* Delete Custom Banner Button in banner footer if admin */}
+                      {customUploadedBanner && (
+                        <button
+                          type="button"
+                          onClick={handleDeleteBannerClick}
+                          title={isAdmin ? 'Delete custom banner' : 'Delete (Admin Required)'}
+                          className="px-2.5 py-1.5 bg-rose-600/80 hover:bg-rose-600 text-white text-xs font-bold rounded-xl border border-rose-400/40 cursor-pointer transition active:scale-95 flex items-center gap-1"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Reset Banner</span>
+                        </button>
+                      )}
+
                       <button
                         onClick={(e) => handleCopyCoupon(slide.couponCode, e)}
                         className="px-2.5 sm:px-3 py-1.5 bg-white/15 hover:bg-white/25 text-white text-xs font-bold rounded-xl border border-white/25 cursor-pointer transition active:scale-95"
                       >
-                        {copiedCoupon === slide.couponCode ? '✓ Copied' : `Code: ${slide.couponCode}`}
+                        {copiedCoupon === slide.couponCode
+                          ? '✓ Copied'
+                          : `Code: ${slide.couponCode}`}
                       </button>
                       <button
                         onClick={() => handleSlideCta(slide)}
@@ -800,9 +975,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
                 </div>
               ) : (
                 <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-                  {/* Left Promotional Content */}
                   <div className="lg:col-span-7 space-y-4">
-                    {/* Header Tag Badges */}
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-amber-200 text-xs font-black uppercase tracking-wider border border-white/20">
                         <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300 animate-pulse" />
@@ -816,7 +989,6 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
                       )}
                     </div>
 
-                    {/* Big Display Typography */}
                     <div className="space-y-1">
                       <h1 className="font-display font-black text-3xl sm:text-5xl lg:text-6xl tracking-tight leading-none text-white drop-shadow-md">
                         {slide.title}{' '}
@@ -829,7 +1001,6 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
                       </p>
                     </div>
 
-                    {/* Discounts Badges Strip */}
                     <div className="flex flex-wrap items-center gap-2 pt-1">
                       {slide.discounts.map((disc, dIdx) => (
                         <span
@@ -841,7 +1012,6 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
                       ))}
                     </div>
 
-                    {/* Interactive Coupon Box & CTA Button */}
                     <div className="flex flex-wrap items-center gap-3 pt-2">
                       <button
                         id={`coupon-btn-${slide.couponCode}`}
@@ -871,7 +1041,6 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
                     </div>
                   </div>
 
-                  {/* Right Hero Image Card */}
                   <div className="lg:col-span-5 relative flex justify-center items-center">
                     <div className="relative w-full max-w-sm sm:max-w-md aspect-4/3 rounded-3xl overflow-hidden shadow-2xl border-4 border-white/20 bg-slate-800/40">
                       <img
@@ -885,7 +1054,9 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
                       <div className="absolute bottom-3 left-3 right-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-3.5 py-2 rounded-xl text-slate-900 dark:text-white flex items-center justify-between shadow-lg border border-transparent dark:border-slate-700/60">
                         <div className="flex items-center gap-2">
                           <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                          <span className="text-[11px] font-extrabold">100% Cotton &amp; Lab Tested</span>
+                          <span className="text-[11px] font-extrabold">
+                            100% Cotton &amp; Lab Tested
+                          </span>
                         </div>
                         <span className="text-[10px] font-black uppercase text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded">
                           JOJI ASSURED
@@ -967,7 +1138,6 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
           </button>
         </div>
 
-        {/* Trust Badges */}
         <div className="flex items-center gap-3 text-[11px] font-bold text-slate-500 dark:text-slate-400">
           <span className="flex items-center gap-1">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
@@ -980,6 +1150,61 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
           </span>
         </div>
       </div>
+
+      {/* Admin Video Editor Modal (Admin Only) */}
+      <AdminVideoEditorModal
+        isOpen={isAdminVideoEditorOpen}
+        onClose={() => setIsAdminVideoEditorOpen(false)}
+        isAdmin={isAdmin}
+        onOpenAdminLogin={() => onOpenAdminLogin?.()}
+      />
+
+      {/* UNAUTHORIZED ADMIN PROMPT MODAL */}
+      {adminAuthNotice && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl space-y-4 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-amber-100 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto shadow-inner">
+              <ShieldAlert className="w-7 h-7" />
+            </div>
+
+            <div className="space-y-1.5">
+              <h3 className="font-display font-black text-lg text-slate-900 dark:text-white">
+                Admin Section Login Required
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                {adminAuthNotice}
+              </p>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 text-[11px] text-amber-900 dark:text-amber-200 text-left flex items-start gap-2">
+              <Lock className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+              <span>
+                Uploading banners, deleting banners, and updating cinematic video reels are protected administrative operations for Dewas store staff.
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setAdminAuthNotice(null)}
+                className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAdminAuthNotice(null);
+                  onOpenAdminLogin?.();
+                }}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/25 transition-all cursor-pointer active:scale-95"
+              >
+                Login as Admin
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
