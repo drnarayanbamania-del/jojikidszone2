@@ -204,6 +204,9 @@ export const Header: React.FC<HeaderProps> = ({
                 categories={categories}
                 isOpen={isDesktopSearchDropdownOpen}
                 onClose={() => setIsDesktopSearchDropdownOpen(false)}
+                onFillQuery={(q) => {
+                  onFilterChange({ searchQuery: q });
+                }}
                 onSelectProduct={(product) => {
                   if (onSelectProduct) {
                     onSelectProduct(product);
@@ -457,6 +460,9 @@ export const Header: React.FC<HeaderProps> = ({
                 categories={categories}
                 isOpen={isMobileSearchDropdownOpen}
                 onClose={() => setIsMobileSearchDropdownOpen(false)}
+                onFillQuery={(q) => {
+                  onFilterChange({ searchQuery: q });
+                }}
                 onSelectProduct={(product) => {
                   if (onSelectProduct) {
                     onSelectProduct(product);

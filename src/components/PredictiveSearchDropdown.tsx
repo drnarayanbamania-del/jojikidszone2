@@ -18,7 +18,9 @@ import {
   Backpack,
   Baby,
   Gift,
+  CornerUpLeft,
 } from 'lucide-react';
+import { getAutocompleteSuggestions, AutocompleteSuggestion } from '../lib/autocompleteSuggestions';
 
 export interface PredictiveSearchDropdownProps {
   query: string;
@@ -29,6 +31,7 @@ export interface PredictiveSearchDropdownProps {
   onSelectProduct: (product: Product) => void;
   onSelectCategory: (categorySlug: string) => void;
   onSearchSubmit: (query: string) => void;
+  onFillQuery?: (phrase: string) => void;
 }
 
 const CATEGORY_ICONS: Record<string, React.FC<{ className?: string }>> = {
@@ -76,6 +79,7 @@ export const PredictiveSearchDropdown: React.FC<PredictiveSearchDropdownProps> =
   onSelectProduct,
   onSelectCategory,
   onSearchSubmit,
+  onFillQuery,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
@@ -126,6 +130,11 @@ export const PredictiveSearchDropdown: React.FC<PredictiveSearchDropdownProps> =
     'Organic Swaddles',
   ];
 
+  // Autocomplete Suggestions (instant prefix & keyword suggestions)
+  const autocompleteList = cleanQuery
+    ? getAutocompleteSuggestions(cleanQuery, products, categories)
+    : [];
+
   // Matched Categories
   const matchedCategories = cleanQuery
     ? categories
@@ -156,6 +165,7 @@ export const PredictiveSearchDropdown: React.FC<PredictiveSearchDropdownProps> =
   // Build unified items array for keyboard navigation
   const selectableItems = cleanQuery
     ? [
+        ...autocompleteList.map((a) => ({ type: 'autocomplete' as const, data: a })),
         ...matchedCategories.map((c) => ({ type: 'category' as const, data: c })),
         ...matchedProducts.map((p) => ({ type: 'product' as const, data: p })),
         { type: 'submit' as const, data: cleanQuery },
@@ -204,7 +214,16 @@ export const PredictiveSearchDropdown: React.FC<PredictiveSearchDropdownProps> =
         if (selectedIndex >= 0 && selectedIndex < selectableItems.length) {
           e.preventDefault();
           const item = selectableItems[selectedIndex];
-          if (item.type === 'category') {
+          if (item.type === 'autocomplete') {
+            const sug = item.data as AutocompleteSuggestion;
+            saveRecentSearch(sug.phrase);
+            if (sug.categorySlug && sug.type === 'category') {
+              onSelectCategory(sug.categorySlug);
+            } else {
+              onSearchSubmit(sug.phrase);
+            }
+            onClose();
+          } else if (item.type === 'category') {
             saveRecentSearch((item.data as Category).name);
             onSelectCategory((item.data as Category).slug);
             onClose();
@@ -348,9 +367,85 @@ export const PredictiveSearchDropdown: React.FC<PredictiveSearchDropdownProps> =
               Suggestions for <strong className="text-slate-900 dark:text-white">"{query}"</strong>
             </span>
             <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400">
-              {matchedProducts.length + matchedCategories.length} matches
+              {autocompleteList.length + matchedProducts.length + matchedCategories.length} suggestions &amp; matches
             </span>
           </div>
+
+          {/* 1. Autocomplete Instant Search Suggestions Section */}
+          {autocompleteList.length > 0 && (
+            <div className="p-2 sm:p-3 bg-gradient-to-b from-amber-50/60 to-white dark:from-amber-950/20 dark:to-slate-900 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-2 py-1 mb-1">
+                <span className="flex items-center gap-1.5 text-amber-700 dark:text-amber-400">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Autocomplete Suggestions
+                </span>
+                <span className="text-[10px] text-slate-400 font-normal">Tap or press Enter ↵</span>
+              </div>
+              <div className="space-y-0.5">
+                {autocompleteList.map((sug, sIdx) => {
+                  const isCurSelected = selectedIndex === sIdx;
+                  return (
+                    <div
+                      key={sug.id}
+                      onClick={() => {
+                        saveRecentSearch(sug.phrase);
+                        if (sug.categorySlug && sug.type === 'category') {
+                          onSelectCategory(sug.categorySlug);
+                        } else {
+                          onSearchSubmit(sug.phrase);
+                        }
+                        onClose();
+                      }}
+                      className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all cursor-pointer group ${
+                        isCurSelected
+                          ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-950 dark:text-amber-100 font-black shadow-2xs'
+                          : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <Search
+                          className={`w-3.5 h-3.5 shrink-0 transition-colors ${
+                            isCurSelected
+                              ? 'text-amber-600 dark:text-amber-400'
+                              : 'text-slate-400 group-hover:text-amber-500'
+                          }`}
+                        />
+                        <span className="truncate">
+                          <HighlightMatch text={sug.phrase} query={cleanQuery} />
+                        </span>
+                        {sug.category && (
+                          <span className="text-[9.5px] px-1.5 py-0.5 rounded-md bg-amber-100/80 dark:bg-amber-950 text-amber-800 dark:text-amber-300 shrink-0 font-bold uppercase tracking-wider">
+                            {sug.category}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        {sug.itemCount !== undefined && (
+                          <span className="text-[10px] text-slate-400 font-mono hidden sm:inline">
+                            {sug.itemCount} {sug.itemCount === 1 ? 'item' : 'items'}
+                          </span>
+                        )}
+                        {onFillQuery && (
+                          <button
+                            type="button"
+                            title="Complete search query"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onFillQuery(sug.phrase);
+                            }}
+                            className="p-1 rounded-md text-slate-400 hover:text-amber-600 hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors cursor-pointer"
+                          >
+                            <CornerUpLeft className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Matched Categories Section */}
           {matchedCategories.length > 0 && (
@@ -360,7 +455,7 @@ export const PredictiveSearchDropdown: React.FC<PredictiveSearchDropdownProps> =
               </span>
               <div className="flex flex-wrap gap-2">
                 {matchedCategories.map((c, idx) => {
-                  const isCurSelected = selectedIndex === idx;
+                  const isCurSelected = selectedIndex === autocompleteList.length + idx;
                   const IconComp = CATEGORY_ICONS[c.slug] || ShoppingBag;
                   return (
                     <button
@@ -419,7 +514,7 @@ export const PredictiveSearchDropdown: React.FC<PredictiveSearchDropdownProps> =
             ) : (
               <div className="space-y-1">
                 {matchedProducts.map((p, pIdx) => {
-                  const itemIndex = matchedCategories.length + pIdx;
+                  const itemIndex = autocompleteList.length + matchedCategories.length + pIdx;
                   const isCurSelected = selectedIndex === itemIndex;
 
                   return (
