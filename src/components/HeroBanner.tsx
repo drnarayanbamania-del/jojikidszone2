@@ -256,6 +256,9 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
   // Unauthorized admin prompt modal
   const [adminAuthNotice, setAdminAuthNotice] = useState<string | null>(null);
 
+  // In-UI confirm state for deleting custom banner without window.confirm
+  const [isConfirmingBannerDelete, setIsConfirmingBannerDelete] = useState(false);
+
   // Carousel slide states
   const [currentIdx, setCurrentIdx] = useState(0);
   const [direction, setDirection] = useState(1);
@@ -403,19 +406,25 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
       return;
     }
 
-    if (
-      window.confirm(
-        'Delete the custom uploaded banner and restore the official Diwali Festive banner?'
-      )
-    ) {
-      deleteStoredCustomBanner();
-      setCustomUploadedBanner(null);
-      setActionToast({
-        message: '✓ Custom banner deleted. Official Diwali Carnival banner restored.',
-        type: 'info',
-      });
-      setTimeout(() => setActionToast(null), 3500);
+    if (!isConfirmingBannerDelete) {
+      setIsConfirmingBannerDelete(true);
+      setTimeout(() => setIsConfirmingBannerDelete(false), 5000);
+      return;
     }
+
+    deleteStoredCustomBanner();
+    setCustomUploadedBanner(null);
+    setIsConfirmingBannerDelete(false);
+    setActionToast({
+      message: '✓ Custom banner deleted! Official Diwali Carnival banner restored.',
+      type: 'success',
+    });
+    setTimeout(() => setActionToast(null), 3500);
+  };
+
+  const handleCancelDeleteBanner = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsConfirmingBannerDelete(false);
   };
 
   const handleEditVideoSectionClick = () => {
@@ -611,23 +620,50 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
 
           {/* 2. Delete Custom Banner Button (Only visible/active when custom banner exists) */}
           {customUploadedBanner && (
-            <button
-              type="button"
-              onClick={handleDeleteBannerClick}
-              title={
-                isAdmin
-                  ? 'Delete custom banner and restore default (Admin Authorized)'
-                  : 'Delete Banner (Admin Login Required)'
-              }
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold shadow-xs transition active:scale-95 cursor-pointer ${
-                isAdmin
-                  ? 'bg-rose-600 hover:bg-rose-700 text-white'
-                  : 'bg-rose-100 hover:bg-rose-200 text-rose-800'
-              }`}
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              <span>{isAdmin ? 'Delete Banner' : 'Delete'}</span>
-            </button>
+            isAdmin ? (
+              isConfirmingBannerDelete ? (
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex items-center gap-1 bg-rose-600 text-white px-2 py-0.5 rounded-lg text-[11px] font-bold shadow-xs animate-in fade-in"
+                >
+                  <span className="text-[10px]">Delete?</span>
+                  <button
+                    type="button"
+                    onClick={handleDeleteBannerClick}
+                    className="px-2 py-0.5 bg-white text-rose-700 hover:bg-rose-100 rounded text-[10px] font-black cursor-pointer active:scale-95"
+                  >
+                    Yes
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancelDeleteBanner}
+                    className="px-1.5 py-0.5 bg-rose-800 hover:bg-rose-900 text-white rounded text-[10px] cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleDeleteBannerClick}
+                  title="Delete custom banner and restore default (Admin Authorized)"
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold shadow-xs transition active:scale-95 cursor-pointer bg-rose-600 hover:bg-rose-700 text-white"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete Banner</span>
+                </button>
+              )
+            ) : (
+              <button
+                type="button"
+                onClick={handleDeleteBannerClick}
+                title="Delete Banner (Admin Login Required)"
+                className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold shadow-xs transition active:scale-95 cursor-pointer bg-rose-100 hover:bg-rose-200 text-rose-800"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete</span>
+              </button>
+            )
           )}
 
           {/* Admin Indicator Badge */}
@@ -946,9 +982,25 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
                       {customUploadedBanner && (
                         <button
                           type="button"
-                          onClick={handleDeleteBannerClick}
-                          title={isAdmin ? 'Delete custom banner' : 'Delete (Admin Required)'}
-                          className="px-2.5 py-1.5 bg-rose-600/80 hover:bg-rose-600 text-white text-xs font-bold rounded-xl border border-rose-400/40 cursor-pointer transition active:scale-95 flex items-center gap-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!isAdmin) {
+                              setAdminAuthNotice(
+                                'Admin Login Required: Only authorized store administrators can delete promotional banners.'
+                              );
+                              return;
+                            }
+                            deleteStoredCustomBanner();
+                            setCustomUploadedBanner(null);
+                            setIsConfirmingBannerDelete(false);
+                            setActionToast({
+                              message: '✓ Custom banner deleted! Official Diwali Carnival banner restored.',
+                              type: 'success',
+                            });
+                            setTimeout(() => setActionToast(null), 3500);
+                          }}
+                          title={isAdmin ? 'Delete custom banner and restore default' : 'Delete (Admin Required)'}
+                          className="px-2.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl border border-rose-400/40 cursor-pointer transition active:scale-95 flex items-center gap-1 shadow-md"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                           <span>Reset Banner</span>

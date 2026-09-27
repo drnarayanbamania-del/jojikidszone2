@@ -54,9 +54,26 @@ export const DEFAULT_VIDEO_REELS: VideoReel[] = [
 const BANNER_STORAGE_KEY = 'joji_custom_festive_banner';
 const VIDEO_REELS_STORAGE_KEY = 'joji_custom_video_reels';
 
+const ALL_BANNER_STORAGE_KEYS = [
+  'joji_custom_festive_banner',
+  'joji_custom_banner',
+  'custom_banner',
+  'festive_banner',
+  'joji_festive_banner',
+  'joji_hero_banner',
+  'custom_uploaded_banner',
+  'customBanner',
+];
+
 export const getStoredCustomBanner = (): string | null => {
   try {
-    return localStorage.getItem(BANNER_STORAGE_KEY);
+    for (const key of ALL_BANNER_STORAGE_KEYS) {
+      const item = localStorage.getItem(key);
+      if (item && item.trim().length > 0) {
+        return item;
+      }
+    }
+    return null;
   } catch {
     return null;
   }
@@ -75,7 +92,13 @@ export const saveStoredCustomBanner = (dataUrl: string): boolean => {
 
 export const deleteStoredCustomBanner = (): boolean => {
   try {
-    localStorage.removeItem(BANNER_STORAGE_KEY);
+    ALL_BANNER_STORAGE_KEYS.forEach((key) => {
+      try {
+        localStorage.removeItem(key);
+      } catch (e) {
+        // ignore
+      }
+    });
     window.dispatchEvent(new Event('joji_banner_updated'));
     return true;
   } catch (err) {

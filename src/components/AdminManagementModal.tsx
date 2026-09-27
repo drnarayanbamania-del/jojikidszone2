@@ -138,9 +138,30 @@ export const AdminManagementModal: React.FC<AdminManagementModalProps> = ({
 
   // Banner & Cinematic Video Management states
   const [adminCustomBanner, setAdminCustomBanner] = useState<string | null>(() => getStoredCustomBanner());
+  const [showDeleteBannerConfirm, setShowDeleteBannerConfirm] = useState(false);
   const adminBannerInputRef = useRef<HTMLInputElement>(null);
   const [adminVideoReels, setAdminVideoReels] = useState<VideoReel[]>(() => getStoredVideoReels());
   const [adminSelectedReelId, setAdminSelectedReelId] = useState<string>(() => getStoredVideoReels()[0]?.id || 'diwali-reel');
+
+  // Sync banner & reels whenever storage updates or modal opens
+  useEffect(() => {
+    const syncBanner = () => setAdminCustomBanner(getStoredCustomBanner());
+    const syncReels = () => setAdminVideoReels(getStoredVideoReels());
+    window.addEventListener('joji_banner_updated', syncBanner);
+    window.addEventListener('joji_video_reels_updated', syncReels);
+    return () => {
+      window.removeEventListener('joji_banner_updated', syncBanner);
+      window.removeEventListener('joji_video_reels_updated', syncReels);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      setAdminCustomBanner(getStoredCustomBanner());
+      setAdminVideoReels(getStoredVideoReels());
+      setShowDeleteBannerConfirm(false);
+    }
+  }, [isOpen]);
 
   const adminActiveReel = adminVideoReels.find((r) => r.id === adminSelectedReelId) || adminVideoReels[0];
 
@@ -161,11 +182,10 @@ export const AdminManagementModal: React.FC<AdminManagementModalProps> = ({
   };
 
   const handleAdminDeleteBanner = () => {
-    if (window.confirm('Delete custom banner and restore the official Diwali Festive banner?')) {
-      deleteStoredCustomBanner();
-      setAdminCustomBanner(null);
-      showFeedback('success', '✓ Custom banner deleted. Official Diwali Festive banner restored.');
-    }
+    deleteStoredCustomBanner();
+    setAdminCustomBanner(null);
+    setShowDeleteBannerConfirm(false);
+    showFeedback('success', '✓ Custom banner deleted successfully! Official Diwali Festive banner restored.');
   };
 
   const handleAdminUpdateActiveReel = (field: keyof VideoReel, value: string) => {
@@ -216,13 +236,11 @@ export const AdminManagementModal: React.FC<AdminManagementModalProps> = ({
   };
 
   const handleAdminResetVideoReels = () => {
-    if (window.confirm('Reset all cinematic video reels back to official defaults?')) {
-      resetStoredVideoReels();
-      const def = getStoredVideoReels();
-      setAdminVideoReels(def);
-      setAdminSelectedReelId(def[0].id);
-      showFeedback('success', '✓ All cinematic video reels reset to defaults.');
-    }
+    resetStoredVideoReels();
+    const def = getStoredVideoReels();
+    setAdminVideoReels(def);
+    setAdminSelectedReelId(def[0].id);
+    showFeedback('success', '✓ All cinematic video reels reset to defaults.');
   };
 
   // Product Filter and Search in Admin Panel
@@ -977,31 +995,75 @@ export const AdminManagementModal: React.FC<AdminManagementModalProps> = ({
                       <span>Upload New Banner</span>
                     </button>
 
-                    {adminCustomBanner && (
+                    {adminCustomBanner ? (
+                      showDeleteBannerConfirm ? (
+                        <div className="flex items-center gap-1.5 bg-rose-50 dark:bg-rose-950/80 p-1 rounded-xl border border-rose-300 dark:border-rose-800 animate-in fade-in">
+                          <span className="text-[11px] font-bold text-rose-700 dark:text-rose-300 px-1">
+                            Delete Banner?
+                          </span>
+                          <button
+                            type="button"
+                            onClick={handleAdminDeleteBanner}
+                            className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-black text-xs rounded-lg transition-all cursor-pointer shadow-xs active:scale-95"
+                          >
+                            Yes, Delete
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setShowDeleteBannerConfirm(false)}
+                            className="px-2 py-1.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 text-slate-800 dark:text-slate-200 text-xs font-bold rounded-lg cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setShowDeleteBannerConfirm(true)}
+                          className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-md shadow-rose-600/25 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+                          title="Delete custom banner and restore default"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Delete Banner</span>
+                        </button>
+                      )
+                    ) : (
                       <button
                         type="button"
                         onClick={handleAdminDeleteBanner}
-                        className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                        className="px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer border border-slate-200 dark:border-slate-700"
+                        title="Ensure default official banner is set"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span>Delete Banner</span>
+                        <RotateCcw className="w-3.5 h-3.5 text-amber-500" />
+                        <span>Official Default Active</span>
                       </button>
                     )}
                   </div>
                 </div>
 
                 {/* Banner Preview Card */}
-                <div className="relative aspect-21/9 max-h-72 w-full rounded-2xl overflow-hidden bg-slate-950 border border-slate-200 dark:border-slate-800">
+                <div className="relative aspect-21/9 max-h-72 w-full rounded-2xl overflow-hidden bg-slate-950 border border-slate-200 dark:border-slate-800 group/prev">
                   <img
                     src={adminCustomBanner || '/diwali-carnival-banner.svg'}
                     alt="Active Storefront Banner Preview"
                     className="w-full h-full object-contain"
                   />
-                  <div className="absolute bottom-2 left-2 px-3 py-1 bg-black/75 backdrop-blur-md rounded-xl text-white text-[11px] font-bold border border-white/20">
-                    Live Preview:{' '}
-                    {adminCustomBanner
-                      ? 'Custom Uploaded Banner'
-                      : 'Official Diwali Festive Banner (Default)'}
+                  <div className="absolute bottom-2 left-2 px-3 py-1 bg-black/75 backdrop-blur-md rounded-xl text-white text-[11px] font-bold border border-white/20 flex items-center gap-2">
+                    <span>
+                      Live Preview:{' '}
+                      {adminCustomBanner
+                        ? 'Custom Uploaded Banner'
+                        : 'Official Diwali Festive Banner (Default)'}
+                    </span>
+                    {adminCustomBanner && (
+                      <button
+                        type="button"
+                        onClick={handleAdminDeleteBanner}
+                        className="ml-2 px-2 py-0.5 bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold rounded-lg cursor-pointer"
+                      >
+                        Delete &amp; Reset
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

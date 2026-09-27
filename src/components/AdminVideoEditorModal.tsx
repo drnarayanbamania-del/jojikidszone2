@@ -137,13 +137,11 @@ export const AdminVideoEditorModal: React.FC<AdminVideoEditorModalProps> = ({
   };
 
   const handleResetDefaults = () => {
-    if (window.confirm('Reset all cinematic video reels to the original factory defaults?')) {
-      resetStoredVideoReels();
-      setReels(DEFAULT_VIDEO_REELS);
-      setSelectedReelId(DEFAULT_VIDEO_REELS[0].id);
-      setStatusMessage({ text: '✓ Video reels reset to official defaults.', type: 'success' });
-      setTimeout(() => setStatusMessage(null), 3000);
-    }
+    resetStoredVideoReels();
+    setReels(DEFAULT_VIDEO_REELS);
+    setSelectedReelId(DEFAULT_VIDEO_REELS[0].id);
+    setStatusMessage({ text: '✓ Video reels reset to official defaults.', type: 'success' });
+    setTimeout(() => setStatusMessage(null), 3000);
   };
 
   return (
