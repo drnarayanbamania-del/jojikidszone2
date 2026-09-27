@@ -1,8 +1,26 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Product, Category } from '../types';
-import { Search, ArrowRight, Tag, Star, Sparkles, TrendingUp } from 'lucide-react';
+import {
+  Search,
+  ArrowRight,
+  Tag,
+  Star,
+  Sparkles,
+  TrendingUp,
+  Clock,
+  Trash2,
+  Layers,
+  ChevronRight,
+  Shirt,
+  ShoppingBag,
+  Footprints,
+  ToyBrick,
+  Backpack,
+  Baby,
+  Gift,
+} from 'lucide-react';
 
-interface PredictiveSearchDropdownProps {
+export interface PredictiveSearchDropdownProps {
   query: string;
   products: Product[];
   categories: Category[];
@@ -13,10 +31,46 @@ interface PredictiveSearchDropdownProps {
   onSearchSubmit: (query: string) => void;
 }
 
+const CATEGORY_ICONS: Record<string, React.FC<{ className?: string }>> = {
+  clothing: Shirt,
+  'ethnic-wear': Sparkles,
+  footwear: Footprints,
+  toys: ToyBrick,
+  accessories: Backpack,
+  'baby-care': Baby,
+  gifting: Gift,
+};
+
+// Component to highlight matched substring
+function HighlightMatch({ text, query }: { text: string; query: string }) {
+  if (!query.trim() || !text) return <>{text}</>;
+  const clean = query.trim();
+  const escapedQuery = clean.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`(${escapedQuery})`, 'gi');
+  const parts = text.split(regex);
+
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.toLowerCase() === clean.toLowerCase() ? (
+          <mark
+            key={i}
+            className="bg-amber-200/90 dark:bg-amber-900/80 text-amber-950 dark:text-amber-100 font-black rounded-xs px-0.5"
+          >
+            {part}
+          </mark>
+        ) : (
+          part
+        )
+      )}
+    </>
+  );
+}
+
 export const PredictiveSearchDropdown: React.FC<PredictiveSearchDropdownProps> = ({
   query,
-  products,
-  categories,
+  products = [],
+  categories = [],
   isOpen,
   onClose,
   onSelectProduct,
@@ -24,7 +78,96 @@ export const PredictiveSearchDropdown: React.FC<PredictiveSearchDropdownProps> =
   onSearchSubmit,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number>(-1);
 
+  // Recent searches stored in localStorage
+  const [recentSearches, setRecentSearches] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem('joji_recent_searches');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const saveRecentSearch = (term: string) => {
+    const trimmed = term.trim();
+    if (!trimmed) return;
+    try {
+      const updated = [trimmed, ...recentSearches.filter((s) => s.toLowerCase() !== trimmed.toLowerCase())].slice(0, 6);
+      setRecentSearches(updated);
+      localStorage.setItem('joji_recent_searches', JSON.stringify(updated));
+    } catch (err) {
+      console.warn('Failed to save recent search', err);
+    }
+  };
+
+  const clearRecentSearches = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setRecentSearches([]);
+    try {
+      localStorage.removeItem('joji_recent_searches');
+    } catch (err) {
+      console.warn('Failed clearing recent searches', err);
+    }
+  };
+
+  const cleanQuery = query.trim().toLowerCase();
+
+  // Curated popular trending keywords for kids wear & toys
+  const trendingSearches = [
+    'Festive Lehenga',
+    'Cotton Rompers',
+    'LED Light-Up Sneakers',
+    'Janmashtami Krishna Set',
+    'Wooden Montessori Toys',
+    'Denim Dungarees',
+    'Peplum Choli',
+    'Organic Swaddles',
+  ];
+
+  // Matched Categories
+  const matchedCategories = cleanQuery
+    ? categories
+        .filter(
+          (c) =>
+            c.name.toLowerCase().includes(cleanQuery) ||
+            c.slug.toLowerCase().includes(cleanQuery) ||
+            (c.description && c.description.toLowerCase().includes(cleanQuery))
+        )
+        .slice(0, 4)
+    : [];
+
+  // Matched Products (name, brand, tag, description, gender, age_group)
+  const matchedProducts = cleanQuery
+    ? products
+        .filter((p) => {
+          const inName = p.name.toLowerCase().includes(cleanQuery);
+          const inBrand = p.brand?.toLowerCase().includes(cleanQuery);
+          const inTag = p.tag?.toLowerCase().includes(cleanQuery);
+          const inDesc = p.description?.toLowerCase().includes(cleanQuery);
+          const inGender = p.gender?.toLowerCase().includes(cleanQuery);
+          const inAge = p.age_group?.toLowerCase().includes(cleanQuery);
+          return inName || inBrand || inTag || inDesc || inGender || inAge;
+        })
+        .slice(0, 6)
+    : [];
+
+  // Build unified items array for keyboard navigation
+  const selectableItems = cleanQuery
+    ? [
+        ...matchedCategories.map((c) => ({ type: 'category' as const, data: c })),
+        ...matchedProducts.map((p) => ({ type: 'product' as const, data: p })),
+        { type: 'submit' as const, data: cleanQuery },
+      ]
+    : [];
+
+  // Reset selectedIndex when query changes
+  useEffect(() => {
+    setSelectedIndex(-1);
+  }, [cleanQuery]);
+
+  // Click outside listener
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -39,41 +182,52 @@ export const PredictiveSearchDropdown: React.FC<PredictiveSearchDropdownProps> =
     };
   }, [isOpen, onClose]);
 
-  const cleanQuery = query.trim().toLowerCase();
+  // Keyboard navigation handler (ArrowUp, ArrowDown, Enter, Escape)
+  useEffect(() => {
+    if (!isOpen) return;
 
-  // Popular or trending searches when query is empty or 1 letter
-  const popularKeywords = [
-    'Lehenga',
-    'Krishna Costume',
-    'Dungarees',
-    'Thermal Innerwear',
-    'Denim Shorts',
-    'Sneakers',
-    'Cotton Dress',
-    'Feeder Bibs',
-  ];
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
 
-  // Match products by name, tag, description, brand, or age_group
-  const matchedProducts = cleanQuery
-    ? products
-        .filter((p) => {
-          const inName = p.name.toLowerCase().includes(cleanQuery);
-          const inTag = p.tag?.toLowerCase().includes(cleanQuery);
-          const inDesc = p.description?.toLowerCase().includes(cleanQuery);
-          const inBrand = p.brand?.toLowerCase().includes(cleanQuery);
-          const inAge = p.age_group?.toLowerCase().includes(cleanQuery);
-          const inGender = p.gender?.toLowerCase().includes(cleanQuery);
-          return inName || inTag || inDesc || inBrand || inAge || inGender;
-        })
-        .slice(0, 6)
-    : [];
+      if (selectableItems.length === 0) return;
 
-  // Match categories
-  const matchedCategories = cleanQuery
-    ? categories
-        .filter((c) => c.name.toLowerCase().includes(cleanQuery) || c.slug.toLowerCase().includes(cleanQuery))
-        .slice(0, 4)
-    : [];
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedIndex((prev) => (prev + 1) % selectableItems.length);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedIndex((prev) => (prev - 1 + selectableItems.length) % selectableItems.length);
+      } else if (e.key === 'Enter') {
+        if (selectedIndex >= 0 && selectedIndex < selectableItems.length) {
+          e.preventDefault();
+          const item = selectableItems[selectedIndex];
+          if (item.type === 'category') {
+            saveRecentSearch((item.data as Category).name);
+            onSelectCategory((item.data as Category).slug);
+            onClose();
+          } else if (item.type === 'product') {
+            saveRecentSearch((item.data as Product).name);
+            onSelectProduct(item.data as Product);
+            onClose();
+          } else if (item.type === 'submit') {
+            saveRecentSearch(cleanQuery);
+            onSearchSubmit(cleanQuery);
+            onClose();
+          }
+        } else if (cleanQuery) {
+          saveRecentSearch(cleanQuery);
+          onSearchSubmit(cleanQuery);
+          onClose();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, selectableItems, selectedIndex, cleanQuery, onClose, onSelectCategory, onSelectProduct, onSearchSubmit]);
 
   if (!isOpen) return null;
 
@@ -81,92 +235,168 @@ export const PredictiveSearchDropdown: React.FC<PredictiveSearchDropdownProps> =
     <div
       ref={containerRef}
       id="predictive-search-dropdown"
-      className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150"
+      className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-800 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150 max-h-[78vh] overflow-y-auto scrollbar-thin divide-y divide-slate-100 dark:divide-slate-800/80"
     >
       {cleanQuery.length === 0 ? (
-        /* Empty Query: Trending Suggestions & Popular Categories */
+        /* Empty Query State: Recent Searches & Trending Keywords */
         <div className="p-4 space-y-4">
-          <div>
-            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2.5">
-              <TrendingUp className="w-3.5 h-3.5 text-amber-500" />
-              <span>Trending Searches</span>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {popularKeywords.map((kw) => (
+          {/* Recent Searches (if user has any) */}
+          {recentSearches.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
+                  <Clock className="w-3.5 h-3.5 text-amber-500" />
+                  Recent Searches
+                </span>
                 <button
-                  key={kw}
                   type="button"
-                  onClick={() => {
-                    onSearchSubmit(kw);
-                    onClose();
-                  }}
-                  className="px-3 py-1.5 text-xs rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-amber-100 dark:hover:bg-amber-950/60 text-slate-700 dark:text-slate-300 hover:text-amber-800 dark:hover:text-amber-300 font-medium transition-colors cursor-pointer"
+                  onClick={clearRecentSearches}
+                  className="text-[11px] font-bold text-slate-400 hover:text-rose-500 flex items-center gap-1 cursor-pointer transition-colors"
                 >
-                  {kw}
+                  <Trash2 className="w-3 h-3" />
+                  <span>Clear</span>
                 </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-              Explore Popular Categories
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {categories.slice(0, 6).map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => {
-                    onSelectCategory(cat.slug);
-                    onClose();
-                  }}
-                  className="text-left p-2 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 hover:border-amber-300 dark:hover:border-amber-600 transition-colors cursor-pointer group"
-                >
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-amber-600 dark:group-hover:text-amber-400 block truncate">
-                    {cat.name}
-                  </span>
-                  <span className="text-[10px] text-slate-400 dark:text-slate-500">Shop collection →</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      ) : (
-        /* Has Query: Live Matches */
-        <div>
-          {/* Categories matches if any */}
-          {matchedCategories.length > 0 && (
-            <div className="p-3 bg-amber-50/60 dark:bg-amber-950/30 border-b border-slate-100 dark:border-slate-800">
-              <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider block mb-1.5">
-                Categories matching "{query}"
-              </span>
-              <div className="flex flex-wrap gap-2">
-                {matchedCategories.map((c) => (
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {recentSearches.map((term) => (
                   <button
-                    key={c.id}
+                    key={term}
                     type="button"
                     onClick={() => {
-                      onSelectCategory(c.slug);
+                      saveRecentSearch(term);
+                      onSearchSubmit(term);
                       onClose();
                     }}
-                    className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:text-amber-600 border border-slate-200 dark:border-slate-700 shadow-2xs cursor-pointer flex items-center gap-1.5"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-amber-100 dark:hover:bg-amber-950/70 text-slate-700 dark:text-slate-200 hover:text-amber-900 dark:hover:text-amber-300 font-semibold transition-all cursor-pointer border border-transparent hover:border-amber-300 dark:hover:border-amber-700 active:scale-95"
                   >
-                    <span>{c.name}</span>
-                    <ArrowRight className="w-3 h-3 text-slate-400" />
+                    <Clock className="w-3 h-3 text-slate-400" />
+                    <span>{term}</span>
                   </button>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Product Results */}
-          <div className="p-3">
-            <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-2 mb-2">
+          {/* Trending Keywords */}
+          <div>
+            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2.5">
+              <TrendingUp className="w-3.5 h-3.5 text-rose-500" />
+              <span>Trending in Kids Fashion &amp; Toys</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {trendingSearches.map((kw) => (
+                <button
+                  key={kw}
+                  type="button"
+                  onClick={() => {
+                    saveRecentSearch(kw);
+                    onSearchSubmit(kw);
+                    onClose();
+                  }}
+                  className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-full bg-slate-50 dark:bg-slate-800/80 hover:bg-amber-100/80 dark:hover:bg-amber-950/60 text-slate-700 dark:text-slate-300 hover:text-amber-900 dark:hover:text-amber-300 font-semibold transition-all cursor-pointer border border-slate-200/80 dark:border-slate-700 active:scale-95"
+                >
+                  <Sparkles className="w-3 h-3 text-amber-500" />
+                  <span>{kw}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Explore Popular Categories Grid */}
+          <div>
+            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+              <Layers className="w-3.5 h-3.5 text-amber-500" />
+              <span>Explore Categories</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {categories.slice(0, 6).map((cat) => {
+                const IconComp = CATEGORY_ICONS[cat.slug] || ShoppingBag;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => {
+                      saveRecentSearch(cat.name);
+                      onSelectCategory(cat.slug);
+                      onClose();
+                    }}
+                    className="flex items-center gap-2 p-2 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 hover:bg-amber-50/60 dark:hover:bg-amber-950/40 hover:border-amber-300 dark:hover:border-amber-600 transition-all cursor-pointer group text-left"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                      <IconComp className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-amber-600 dark:group-hover:text-amber-400 block truncate">
+                        {cat.name}
+                      </span>
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 block truncate">
+                        Browse →
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Has Active Query: Real-Time Matched Categories & Products */
+        <div>
+          {/* Header Summary Strip */}
+          <div className="px-4 py-2 bg-slate-50 dark:bg-slate-800/60 flex items-center justify-between text-xs">
+            <span className="text-slate-500 dark:text-slate-400 font-medium">
+              Suggestions for <strong className="text-slate-900 dark:text-white">"{query}"</strong>
+            </span>
+            <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400">
+              {matchedProducts.length + matchedCategories.length} matches
+            </span>
+          </div>
+
+          {/* Matched Categories Section */}
+          {matchedCategories.length > 0 && (
+            <div className="p-3 bg-amber-50/40 dark:bg-amber-950/20">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-amber-700 dark:text-amber-400 block mb-2 px-1">
+                Matching Categories
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {matchedCategories.map((c, idx) => {
+                  const isCurSelected = selectedIndex === idx;
+                  const IconComp = CATEGORY_ICONS[c.slug] || ShoppingBag;
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => {
+                        saveRecentSearch(c.name);
+                        onSelectCategory(c.slug);
+                        onClose();
+                      }}
+                      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border shadow-2xs ${
+                        isCurSelected
+                          ? 'bg-amber-500 text-white border-amber-500 ring-2 ring-amber-400/40 scale-102'
+                          : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-amber-400 hover:text-amber-600'
+                      }`}
+                    >
+                      <IconComp className="w-3.5 h-3.5 text-amber-500" />
+                      <span>
+                        <HighlightMatch text={c.name} query={cleanQuery} />
+                      </span>
+                      <ArrowRight className="w-3 h-3 opacity-60" />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Matched Products Section */}
+          <div className="p-2 sm:p-3">
+            <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-2 py-1 mb-1">
               <span>Matching Products ({matchedProducts.length})</span>
               <button
                 type="button"
                 onClick={() => {
+                  saveRecentSearch(cleanQuery);
                   onSearchSubmit(cleanQuery);
                   onClose();
                 }}
@@ -179,73 +409,65 @@ export const PredictiveSearchDropdown: React.FC<PredictiveSearchDropdownProps> =
             {matchedProducts.length === 0 ? (
               <div className="py-8 text-center space-y-2">
                 <Search className="w-8 h-8 mx-auto text-slate-300 dark:text-slate-600" />
-                <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-                  No products matching "{query}"
+                <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                  No direct products found for "{query}"
                 </p>
                 <p className="text-[11px] text-slate-400">
-                  Try searching for 'lehenga', 't-shirt', 'dungarees', 'shoes', or 'bibs'
+                  Try broader terms like 'lehenga', 't-shirt', 'shoes', 'toys', or 'romper'
                 </p>
               </div>
             ) : (
               <div className="space-y-1">
-                {matchedProducts.map((p) => {
-                  // highlight matched term in product name
-                  const matchIndex = p.name.toLowerCase().indexOf(cleanQuery);
-                  let before = p.name;
-                  let match = '';
-                  let after = '';
-
-                  if (matchIndex !== -1) {
-                    before = p.name.slice(0, matchIndex);
-                    match = p.name.slice(matchIndex, matchIndex + cleanQuery.length);
-                    after = p.name.slice(matchIndex + cleanQuery.length);
-                  }
+                {matchedProducts.map((p, pIdx) => {
+                  const itemIndex = matchedCategories.length + pIdx;
+                  const isCurSelected = selectedIndex === itemIndex;
 
                   return (
                     <div
                       key={p.id}
                       onClick={() => {
+                        saveRecentSearch(p.name);
                         onSelectProduct(p);
                         onClose();
                       }}
-                      className="group flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/80 cursor-pointer transition-colors border border-transparent hover:border-slate-100 dark:hover:border-slate-800"
+                      className={`group flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-all border ${
+                        isCurSelected
+                          ? 'bg-amber-50/90 dark:bg-amber-950/60 border-amber-300 dark:border-amber-600 ring-2 ring-amber-400/30'
+                          : 'hover:bg-slate-50 dark:hover:bg-slate-800/80 border-transparent hover:border-slate-100 dark:hover:border-slate-800'
+                      }`}
                     >
-                      <div className="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700">
+                      {/* Thumbnail with rounded corners and fallback */}
+                      <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700 shadow-2xs">
                         <img
                           src={p.image_url}
                           alt={p.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          className="w-full h-full object-cover group-hover:scale-106 transition-transform duration-300"
                           onError={(e) => {
                             (e.currentTarget as HTMLImageElement).src =
-                              'https://images.pexels.com/photos/5560019/pexels-photo-5560019.jpeg?auto=compress&cs=tinysrgb&w=300';
+                              'https://images.pexels.com/photos/5693891/pexels-photo-5693891.jpeg?auto=compress&cs=tinysrgb&h=300';
                           }}
                         />
                       </div>
 
+                      {/* Product Metadata & Highlighted Title */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-semibold text-slate-900 dark:text-white truncate">
-                            {matchIndex !== -1 ? (
-                              <>
-                                {before}
-                                <span className="bg-amber-200/80 dark:bg-amber-900/60 text-amber-950 dark:text-amber-200 rounded px-0.5">
-                                  {match}
-                                </span>
-                                {after}
-                              </>
-                            ) : (
-                              p.name
-                            )}
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 truncate">
+                            <HighlightMatch text={p.brand || 'JOJI'} query={cleanQuery} />
                           </span>
                           {p.tag && (
-                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 font-bold shrink-0">
-                              {p.tag}
+                            <span className="text-[9px] px-1.5 py-0.2 rounded-md bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 font-extrabold uppercase shrink-0">
+                              <HighlightMatch text={p.tag} query={cleanQuery} />
                             </span>
                           )}
                         </div>
 
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-xs font-bold text-slate-900 dark:text-white font-mono">
+                        <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                          <HighlightMatch text={p.name} query={cleanQuery} />
+                        </h4>
+
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs font-black text-slate-900 dark:text-white font-mono">
                             ₹{p.price}
                           </span>
                           {p.old_price && p.old_price > p.price && (
@@ -254,7 +476,7 @@ export const PredictiveSearchDropdown: React.FC<PredictiveSearchDropdownProps> =
                             </span>
                           )}
                           {p.discount_percent && p.discount_percent > 0 && (
-                            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                            <span className="text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1 rounded">
                               {p.discount_percent}% OFF
                             </span>
                           )}
@@ -267,8 +489,9 @@ export const PredictiveSearchDropdown: React.FC<PredictiveSearchDropdownProps> =
                         </div>
                       </div>
 
-                      <div className="text-slate-400 group-hover:text-amber-500 transition-colors pr-1">
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                      {/* Right Action Chevron */}
+                      <div className="text-slate-400 group-hover:text-amber-500 transition-colors pr-1 shrink-0">
+                        <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                       </div>
                     </div>
                   );
@@ -277,20 +500,22 @@ export const PredictiveSearchDropdown: React.FC<PredictiveSearchDropdownProps> =
             )}
           </div>
 
-          {/* Footer of Dropdown */}
-          <div className="p-2.5 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
-            <span className="text-[11px] text-slate-400">
-              Press <kbd className="px-1.5 py-0.5 bg-white dark:bg-slate-700 rounded border border-slate-200 dark:border-slate-600 text-[10px] font-mono">Enter</kbd> to see all matches
+          {/* Action Footer Button */}
+          <div className="p-3 bg-slate-50 dark:bg-slate-800/60 flex items-center justify-between text-xs">
+            <span className="hidden sm:inline text-[11px] text-slate-400">
+              Use <kbd className="px-1.5 py-0.5 bg-white dark:bg-slate-700 rounded border border-slate-200 dark:border-slate-600 text-[10px] font-mono">↑</kbd> <kbd className="px-1.5 py-0.5 bg-white dark:bg-slate-700 rounded border border-slate-200 dark:border-slate-600 text-[10px] font-mono">↓</kbd> to navigate, <kbd className="px-1.5 py-0.5 bg-white dark:bg-slate-700 rounded border border-slate-200 dark:border-slate-600 text-[10px] font-mono">Enter</kbd> to select
             </span>
             <button
               type="button"
               onClick={() => {
+                saveRecentSearch(cleanQuery);
                 onSearchSubmit(cleanQuery);
                 onClose();
               }}
-              className="font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 cursor-pointer text-xs"
+              className="ml-auto inline-flex items-center gap-1.5 font-black text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 cursor-pointer text-xs"
             >
-              Search "{query}"
+              <span>Search all for "{query}"</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
