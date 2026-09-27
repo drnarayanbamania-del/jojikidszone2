@@ -1,0 +1,6 @@
+{
+  "name": "JOJI KIDS ZONE",
+  "description": "Premium kids apparel, footwear, and essentials with live Supabase catalog, cart, wishlist synchronization, past order history with one-click reorder, and secure admin portal for catalog management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
