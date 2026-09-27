@@ -1,6 +1,7 @@
 import React from 'react';
-import { Heart, ShoppingBag, Star, Check, Eye, Trash2, Edit2, ShieldCheck } from 'lucide-react';
+import { Heart, ShoppingBag, Star, Check, Eye, Trash2, Edit2, ShieldCheck, Share2 } from 'lucide-react';
 import { Product } from '../types';
+import { shareProduct } from '../lib/shareProduct';
 
 interface ProductCardProps {
   product: Product;
@@ -30,6 +31,19 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   });
   const [isAdding, setIsAdding] = React.useState(false);
   const [justAdded, setJustAdded] = React.useState(false);
+  const [shareFeedback, setShareFeedback] = React.useState<string | null>(null);
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const result = await shareProduct(product);
+    if (result.copied) {
+      setShareFeedback('Link Copied!');
+      setTimeout(() => setShareFeedback(null), 2000);
+    } else if (result.shared) {
+      setShareFeedback('Shared!');
+      setTimeout(() => setShareFeedback(null), 2000);
+    }
+  };
 
   const isFootwear =
     product.name.toLowerCase().includes('sneaker') ||
@@ -124,21 +138,51 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </div>
         )}
 
-        {/* Wishlist Toggle Button */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleWishlist(product.id);
-          }}
-          className={`absolute top-2.5 right-2.5 w-8.5 h-8.5 rounded-full flex items-center justify-center transition-all backdrop-blur-md shadow-xs z-10 active:scale-90 ${
-            isWishlisted
-              ? 'bg-rose-50 dark:bg-rose-950/70 text-rose-500 hover:scale-110 shadow-rose-200 dark:shadow-none'
-              : 'bg-white/85 dark:bg-slate-900/85 text-slate-600 dark:text-slate-300 hover:text-rose-500 hover:bg-white dark:hover:bg-slate-900 border border-transparent dark:border-slate-700'
-          }`}
-          aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-        >
-          <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-rose-500' : ''}`} />
-        </button>
+        {/* Action Badges Stack: Wishlist & Share */}
+        <div className="absolute top-2.5 right-2.5 z-10 flex flex-col items-center gap-1.5">
+          {/* Wishlist Toggle Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleWishlist(product.id);
+            }}
+            className={`w-8.5 h-8.5 rounded-full flex items-center justify-center transition-all backdrop-blur-md shadow-xs active:scale-90 ${
+              isWishlisted
+                ? 'bg-rose-50 dark:bg-rose-950/70 text-rose-500 hover:scale-110 shadow-rose-200 dark:shadow-none'
+                : 'bg-white/85 dark:bg-slate-900/85 text-slate-600 dark:text-slate-300 hover:text-rose-500 hover:bg-white dark:hover:bg-slate-900 border border-transparent dark:border-slate-700'
+            }`}
+            aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+            title={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+          >
+            <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-rose-500' : ''}`} />
+          </button>
+
+          {/* Share Button (Web Share API) */}
+          <button
+            type="button"
+            onClick={handleShare}
+            className={`w-8.5 h-8.5 rounded-full flex items-center justify-center transition-all backdrop-blur-md shadow-xs active:scale-90 relative ${
+              shareFeedback
+                ? 'bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-700'
+                : 'bg-white/85 dark:bg-slate-900/85 text-slate-600 dark:text-slate-300 hover:text-amber-600 hover:bg-white dark:hover:bg-slate-900 border border-transparent dark:border-slate-700'
+            }`}
+            aria-label="Share product"
+            title="Share with friends & family"
+          >
+            {shareFeedback ? (
+              <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+            ) : (
+              <Share2 className="w-3.5 h-3.5" />
+            )}
+
+            {/* Quick Floating Tooltip when copied */}
+            {shareFeedback && (
+              <span className="absolute right-full mr-1.5 px-2 py-0.5 rounded-md bg-slate-900 text-white text-[10px] font-bold whitespace-nowrap shadow-md pointer-events-none z-30">
+                {shareFeedback}
+              </span>
+            )}
+          </button>
+        </div>
 
         {/* Tag Badge */}
         {product.tag && (

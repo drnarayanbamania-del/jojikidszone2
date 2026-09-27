@@ -194,6 +194,41 @@ export default function App() {
     loadData();
   }, []);
 
+  // Deep-link direct product opening when sharing product URL with friends & family
+  useEffect(() => {
+    if (products.length > 0 && !quickViewProduct) {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const deepLinkProductId = urlParams.get('product');
+        if (deepLinkProductId) {
+          const found = products.find((p) => p.id === deepLinkProductId);
+          if (found) {
+            setQuickViewProduct(found);
+          }
+        }
+      } catch (e) {
+        console.error('Error parsing product URL parameter:', e);
+      }
+    }
+  }, [products]);
+
+  // Sync URL query parameter when quickViewProduct modal opens or closes
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const url = new URL(window.location.href);
+      if (quickViewProduct) {
+        url.searchParams.set('product', quickViewProduct.id);
+        window.history.replaceState({}, '', url.toString());
+      } else if (url.searchParams.has('product')) {
+        url.searchParams.delete('product');
+        window.history.replaceState({}, '', url.toString());
+      }
+    } catch (e) {
+      console.error('Error updating URL search parameters:', e);
+    }
+  }, [quickViewProduct]);
+
   const handleDeleteProductFromCard = async (product: Product) => {
     if (!isAdmin) {
       setIsAdminLoginOpen(true);
