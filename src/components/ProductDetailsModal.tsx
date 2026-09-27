@@ -4,6 +4,7 @@ import { Product } from '../types';
 import { ProductReviews } from './ProductReviews';
 import { SizeGuideModal } from './SizeGuideModal';
 import { PriceDropAlertSection } from './PriceDropAlertSection';
+import { ProductImageZoom } from './ProductImageZoom';
 
 interface ProductDetailsModalProps {
   product: Product | null;
@@ -67,36 +68,13 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
           <X className="w-5 h-5" />
         </button>
 
-        {/* Left Image Section */}
-        <div className="md:col-span-5 bg-slate-100 dark:bg-slate-800 relative min-h-[260px] md:min-h-full flex flex-col justify-between overflow-hidden">
-          <img
+        {/* Left Image Section with Interactive Pan & Zoom */}
+        <div className="md:col-span-5 bg-slate-100 dark:bg-slate-800 relative min-h-[300px] md:min-h-full flex flex-col justify-between overflow-hidden">
+          <ProductImageZoom
             src={product.image_url}
             alt={product.name}
-            referrerPolicy="no-referrer"
-            className="w-full h-full object-cover object-center max-h-[340px] md:max-h-none"
-            onError={(e) => {
-              const target = e.currentTarget;
-              target.onerror = null;
-              target.src = 'https://images.pexels.com/photos/5693891/pexels-photo-5693891.jpeg?auto=compress&cs=tinysrgb&h=650&w=940';
-            }}
+            tag={product.tag}
           />
-          {product.tag && (
-            <span className="absolute top-4 left-4 text-xs font-black uppercase tracking-wider px-3 py-1 bg-amber-500 text-slate-950 rounded-full shadow-md">
-              {product.tag}
-            </span>
-          )}
-
-          {/* Quick trust strip on image overlay */}
-          <div className="hidden md:flex absolute bottom-0 inset-x-0 bg-gradient-to-t from-slate-950/80 via-slate-950/40 to-transparent p-4 text-white text-xs items-center justify-between">
-            <span className="flex items-center gap-1 font-semibold text-[11px]">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              100% Skin Safe
-            </span>
-            <span className="flex items-center gap-1 font-semibold text-[11px]">
-              <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
-              15-Day Free Returns
-            </span>
-          </div>
         </div>
 
         {/* Right Details Section */}
