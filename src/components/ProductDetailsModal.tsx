@@ -119,7 +119,7 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
           <ProductImageZoom
             src={product.image_url}
             alt={product.name}
-            tag={product.tag}
+            tag={product.tag ?? undefined}
           />
         </div>
 

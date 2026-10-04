@@ -201,7 +201,7 @@ export const CustomerChatBot: React.FC<CustomerChatBotProps> = ({
       if (pastOrders.length > 0) {
         const latestOrder = pastOrders[0];
         return {
-          text: `📦 Your latest order **#${latestOrder.id}** (${latestOrder.items.length} items, ₹${latestOrder.totalAmount}) is placed!\n\nYou can track live milestones (Packed, Shipped, Out for Delivery) with one tap.`,
+          text: `📦 Your latest order **#${latestOrder.id}** (${latestOrder.items.length} items, ₹${latestOrder.grandTotal}) is placed!\n\nYou can track live milestones (Packed, Shipped, Out for Delivery) with one tap.`,
           actions: [
             { label: `📍 Track #${latestOrder.id}`, type: 'track', value: latestOrder.id },
             { label: '📦 All Past Orders', type: 'contact' },

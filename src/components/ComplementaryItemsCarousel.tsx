@@ -118,7 +118,7 @@ export const ComplementaryItemsCarousel: React.FC<ComplementaryItemsCarouselProp
       const lowerName = prod.name.toLowerCase();
       const lowerDesc = (prod.description || '').toLowerCase();
 
-      if (targetCategoryIds.has(prod.category_id)) {
+      if (prod.category_id && targetCategoryIds.has(prod.category_id)) {
         score += 5;
       }
 
